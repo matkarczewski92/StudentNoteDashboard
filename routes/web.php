@@ -8,7 +8,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('/dashboard', 'dashboard')->name('dashboard');
 
     require __DIR__.'/web/profile.php';
-    require __DIR__.'/web/auth.php';
     require __DIR__.'/web/schedule.php';
 });
 
