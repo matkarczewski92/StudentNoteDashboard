@@ -12,4 +12,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__.'/web/schedule.php';
 });
 
+
+
+
+require __DIR__.'/web/admin.php';
 require __DIR__.'/auth.php';
