@@ -9,7 +9,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     require __DIR__.'/web/profile.php';
     require __DIR__.'/web/schedule.php';
-    require __DIR__.'/web/qa.php';
+    require __DIR__.'/web/schedule.php';
 });
 
 
@@ -17,7 +17,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
 require __DIR__.'/web/admin.php';
 require __DIR__.'/auth.php';
     
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
