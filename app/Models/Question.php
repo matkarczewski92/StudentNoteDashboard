@@ -11,6 +11,7 @@ class Question extends Model
 
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
     public function answers(): HasMany { return $this->hasMany(Answer::class); }
+    public function poll(): BelongsTo { return $this->belongsTo(Poll::class); }
 
     // pomocnicze
     public function canEditBy(User $user): bool {

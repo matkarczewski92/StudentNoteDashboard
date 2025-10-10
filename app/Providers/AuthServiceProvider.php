@@ -15,6 +15,7 @@ class AuthServiceProvider extends ServiceProvider
     \App\Models\Event::class => \App\Policies\EventPolicy::class,
     \App\Models\Question::class => \App\Policies\QuestionPolicy::class,
     \App\Models\Answer::class   => \App\Policies\AnswerPolicy::class,
+    \App\Models\Poll::class     => \App\Policies\PollPolicy::class,
     ];
 
     /**

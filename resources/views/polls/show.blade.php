@@ -1,0 +1,255 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container px-3 px-md-4">
+
+  <div class="card mb-4">
+    <div class="card-body d-flex justify-content-between gap-3">
+      <div class="flex-grow-1">
+        <h1 class="h4 fw-bold mb-2">{{ $poll->title }}</h1>
+        <div class="small text-body-secondary">Autor: {{ $poll->user->name ?? '?' }} · {{ $poll->created_at->diffForHumans() }}</div>
+      </div>
+      <div class="text-end">
+        @if($poll->is_closed)
+          <span class="badge text-bg-danger">Zamknięta</span>
+        @else
+          <span class="badge text-bg-success">Otwarte</span>
+        @endif
+        <div class="d-flex flex-column gap-2 mt-2">
+          @can('close', $poll)
+            <form method="post" action="{{ route('polls.update', $poll) }}">
+              @csrf @method('put')
+              <input type="hidden" name="is_closed" value="{{ $poll->is_closed ? 0 : 1 }}">
+              <button class="btn btn-outline-secondary btn-sm w-100">{{ $poll->is_closed ? 'Otwórz' : 'Zamknij' }}</button>
+            </form>
+          @endcan
+          @can('delete', $poll)
+            <form method="post" action="{{ route('polls.destroy', $poll) }}" onsubmit="return confirm('Usunąć ankietę?');">
+              @csrf @method('delete')
+              <button class="btn btn-outline-danger btn-sm w-100">Usuń</button>
+            </form>
+          @endcan
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          @php $multiple = $poll->is_multiple; @endphp
+          <form id="vote-form" class="vstack gap-3">
+            @csrf
+            @foreach($poll->options as $opt)
+              @php $votes = $opt->votes_count ?? $opt->votes()->count(); @endphp
+              <div class="d-flex align-items-center gap-2">
+                <input
+                  type="{{ $multiple ? 'checkbox' : 'radio' }}"
+                  name="{{ $multiple ? 'option_ids[]' : 'option_id' }}"
+                  value="{{ $opt->id }}"
+                  id="opt{{ $opt->id }}"
+                  @checked(in_array($opt->id, $userVoteIds))
+                  {{ $poll->is_closed ? 'disabled' : '' }}
+                >
+                <label class="form-check-label flex-grow-1" for="opt{{ $opt->id }}">{{ $opt->label }}</label>
+                <span class="small text-body-secondary" data-votes="{{ $opt->id }}">{{ $votes }}</span>
+              </div>
+              <div class="progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width: 0%" data-bar="{{ $opt->id }}"></div>
+              </div>
+            @endforeach
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+              <div class="small text-body-secondary">Wyniki na żywo · <span id="total">0</span> głosów</div>
+              <div id="vote-actions" class="d-flex gap-2">
+                @if(!$poll->is_closed)
+                  <button id="voteBtn" type="button" class="btn btn-success btn-sm">{{ $hasVoted ? 'Edytuj głos' : 'Głosuj' }}</button>
+                  <button id="clearBtn" type="button" class="btn btn-outline-danger btn-sm {{ $hasVoted ? '' : 'd-none' }}">Usuń głos</button>
+                @endif
+              </div>
+            </div>
+            <div id="editInfo" class="small text-body-secondary {{ $hasVoted ? '' : 'd-none' }}">
+              @if($hasVoted)
+                @if($canEditVote)
+                  Możesz edytować/wycofać głos do: {{ $editUntil->format('H:i') }}
+                @else
+                  Czas na edycję głosu minął.
+                @endif
+              @endif
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      @can('update', $poll)
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" role="switch" id="multipleSwitch" {{ $poll->is_multiple ? 'checked' : '' }} data-url="{{ route('polls.update', $poll) }}">
+            <label class="form-check-label" for="multipleSwitch">Zezwól na wielokrotny wybór</label>
+          </div>
+          <form method="post" action="{{ route('polls.update', $poll) }}" class="d-flex gap-2 mb-2">
+            @csrf @method('put')
+            <input name="title" class="form-control" value="{{ $poll->title }}" placeholder="Tytuł ankiety" required>
+            <button class="btn btn-outline-primary btn-sm">Zapisz</button>
+          </form>
+          <form method="post" action="{{ route('poll_options.store', $poll) }}" class="d-flex gap-2">
+            @csrf
+            <input name="label" class="form-control" placeholder="Dodaj opcję">
+            <button class="btn btn-outline-secondary">Dodaj</button>
+          </form>
+        </div>
+      </div>
+      @endcan
+
+      <div class="card">
+        <div class="card-body">
+          <a href="{{ route('polls.index') }}" class="btn btn-outline-secondary btn-sm">Wróć do listy</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+@push('scripts')
+<script>
+  const STATS_URL = @json(route('polls.stats', $poll));
+  const ME_URL    = @json(route('polls.me', $poll));
+  const VOTE_URL  = @json(route('polls.vote', $poll));
+  const POLL_CLOSED = {{ $poll->is_closed ? 'true' : 'false' }};
+
+  async function refreshStats(){
+    try {
+      const res = await fetch(STATS_URL, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) return;
+      const data = await res.json();
+      document.getElementById('total').textContent = data.total ?? 0;
+      for (const o of data.options || []) {
+        const bar = document.querySelector(`[data-bar="${o.id}"]`);
+        const vc  = document.querySelector(`[data-votes="${o.id}"]`);
+        if (bar) { bar.style.width = (o.percent||0) + '%'; bar.textContent = (o.percent||0) + '%'; }
+        if (vc)  { vc.textContent = o.votes ?? 0; }
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  function setSelectedOptions(ids, isMultiple) {
+    if (isMultiple) {
+      document.querySelectorAll('input[name="option_ids[]"]').forEach(i => { i.checked = ids.includes(parseInt(i.value)); });
+    } else {
+      const wanted = ids[0];
+      document.querySelectorAll('input[name="option_id"]').forEach(i => { i.checked = (parseInt(i.value) === wanted); });
+    }
+  }
+
+  async function refreshState(force=false){
+    try {
+      const res = await fetch(ME_URL, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) return;
+      const data = await res.json();
+      const voteBtn  = document.getElementById('voteBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const editInfo = document.getElementById('editInfo');
+
+      // update selection to reflect current votes
+      if (!force && window.__pollDirtySelection) {
+        // użytkownik coś zaznaczył i jeszcze nie zapisał — nie nadpisujemy wyboru
+      } else {
+        setSelectedOptions(data.optionIds || [], !!data.is_multiple);
+      }
+
+      if (voteBtn) {
+        voteBtn.textContent = (data.hasVoted ? 'Edytuj głos' : 'Głosuj');
+        voteBtn.disabled = POLL_CLOSED || (data.hasVoted && !data.canEditVote);
+      }
+      if (clearBtn) {
+        clearBtn.classList.toggle('d-none', !data.hasVoted);
+        clearBtn.disabled = POLL_CLOSED || (data.hasVoted && !data.canEditVote);
+      }
+      if (editInfo) {
+        if (!data.hasVoted) { editInfo.classList.add('d-none'); editInfo.textContent = ''; }
+        else {
+          editInfo.classList.remove('d-none');
+          if (data.canEditVote && data.editUntil) {
+            const dt = new Date(data.editUntil);
+            const h = String(dt.getHours()).padStart(2,'0');
+            const m = String(dt.getMinutes()).padStart(2,'0');
+            editInfo.textContent = `Możesz edytować/wycofać głos do: ${h}:${m}`;
+          } else {
+            editInfo.textContent = 'Czas na edycję głosu minął.';
+          }
+        }
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  // śledzenie lokalnej zmiany zaznaczeń, aby nie nadpisywać ich auto-refresh'em
+  window.__pollDirtySelection = false;
+  document.querySelectorAll('#vote-form input[type="checkbox"], #vote-form input[type="radio"]').forEach(el => {
+    el.addEventListener('change', () => { window.__pollDirtySelection = true; });
+  });
+
+  setInterval(() => { refreshStats(); refreshState(); }, 3000);
+  refreshStats();
+  refreshState(true);
+
+  const voteBtn  = document.getElementById('voteBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  if (voteBtn) {
+    voteBtn.addEventListener('click', async () => {
+      try {
+        const fd = new FormData();
+        const token = document.querySelector('#vote-form input[name=_token]')?.value; if (token) fd.append('_token', token);
+        const multiple = document.querySelector('input[name="option_ids[]"]') !== null;
+        if (multiple) {
+          document.querySelectorAll('input[name="option_ids[]"]:checked').forEach(i => fd.append('option_ids[]', i.value));
+        } else {
+          const sel = document.querySelector('input[name="option_id"]:checked');
+          if (sel) fd.append('option_id', sel.value);
+        }
+        const res = await fetch(VOTE_URL, { method: 'POST', body: fd });
+        if (res.status === 401) { window.location = @json(route('login')); return; }
+        await refreshStats();
+        window.__pollDirtySelection = false;
+        await refreshState(true);
+      } catch (e) { console.error(e); }
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', async () => {
+      try {
+        const fd = new FormData();
+        const token = document.querySelector('#vote-form input[name=_token]')?.value; if (token) fd.append('_token', token);
+        fd.append('clear','1');
+        const res = await fetch(VOTE_URL, { method: 'POST', body: fd });
+        await refreshStats();
+        window.__pollDirtySelection = false;
+        await refreshState(true);
+      } catch (e) { console.error(e); }
+    });
+  }
+
+  // toggle is_multiple
+  (function(){
+    const sw = document.getElementById('multipleSwitch');
+    if (!sw) return;
+    sw.addEventListener('change', async () => {
+      try {
+        const url = sw.dataset.url;
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || document.querySelector('input[name=_token]')?.value;
+        const fd = new FormData();
+        fd.append('_method','PUT');
+        fd.append('is_multiple', sw.checked ? '1' : '0');
+        const res = await fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': token }, body: fd });
+        if (res.status === 401) { window.location = @json(route('login')); return; }
+        if (res.ok) { window.location.reload(); }
+      } catch (err) { console.error(err); }
+    });
+  })();
+</script>
+@endpush
+@endsection

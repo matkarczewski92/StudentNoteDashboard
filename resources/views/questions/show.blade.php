@@ -51,6 +51,35 @@
     </div>
   </div>
 
+  {{-- KARTA: Ankieta powiązana z pytaniem --}}
+  @if($question->poll)
+    @include('polls._widget', ['poll' => $question->poll])
+  @else
+    @can('update', $question)
+      <div class="card mb-4">
+        <div class="card-body">
+          <form method="post" action="{{ route('polls.store') }}" class="vstack gap-2">
+            @csrf
+            <input type="hidden" name="question_id" value="{{ $question->id }}">
+            <label class="form-label">Dodaj ankietę do tego pytania</label>
+            <input name="title" class="form-control" placeholder="Tytuł ankiety" required>
+            <div class="vstack gap-2">
+              <input name="options[]" class="form-control" placeholder="Opcja 1" required>
+              <input name="options[]" class="form-control" placeholder="Opcja 2" required>
+            </div>
+            <div class="d-flex align-items-center justify-content-between mt-2">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="1" id="q_is_multiple" name="is_multiple">
+                <label class="form-check-label" for="q_is_multiple">Wielokrotny wybór</label>
+              </div>
+              <button class="btn btn-outline-primary btn-sm">Utwórz ankietę</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    @endcan
+  @endif
+
   {{-- KARTA: Edycja pytania (pełna szerokość, jedno pole) --}}
   @can('update', $question)
     @if(auth()->id() === $question->user_id && $question->created_at->addMinutes(30)->isFuture())

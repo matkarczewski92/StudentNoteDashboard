@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-md navbar-dark shadow-sm">
+﻿<nav class="navbar navbar-expand-md navbar-dark shadow-sm">
     <div class="container">
         <a class="navbar-brand" href="{{ route('dashboard') }}">
             StudentNoteDashboard <sup>beta v0.1</sup>
@@ -18,6 +18,7 @@
             <a class="nav-link me-3" href="{{ route('schedule.index') }}"><i class="bi bi-calendar-date"></i> Harmonogram</a> 
             <a class="nav-link me-3" href="{{ route('dashboard') }}"><i class="bi bi-journal-check"></i> Notatki</a> 
             <a class="nav-link me-3" href="{{ route('questions.index') }}"><i class="bi bi-cup-hot"></i> Tablica</a> 
+            <a class="nav-link me-3" href="{{ route('polls.index') }}"><i class="bi bi-check2-square"></i> Głosowania</a> 
             
 
             @can('moderate')
@@ -45,7 +46,7 @@
 
                             <a class="dropdown-item" href="{{ route('logout') }}"
                                onclick="event.preventDefault();document.getElementById('logout-form').submit();">
-                                Wyloguj się
+                                Wyloguj siÄ™
                             </a>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                 @csrf
@@ -57,3 +58,5 @@
         </div>
     </div>
 </nav>
+
+
