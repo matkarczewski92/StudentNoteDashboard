@@ -11,9 +11,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__.'/web/schedule.php';
 });
 
-Route::fallback(function () {
-    return response()->view('errors.404', [], 404);
-});
 
 
 require __DIR__.'/web/admin.php';
