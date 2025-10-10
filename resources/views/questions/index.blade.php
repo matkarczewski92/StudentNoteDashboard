@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid px-3 px-md-4">
+<div class="container px-3 px-md-4">
 
   <h1 class="h2 fw-bold mb-4">Pytania</h1>
 

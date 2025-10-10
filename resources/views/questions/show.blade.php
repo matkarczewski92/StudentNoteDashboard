@@ -1,15 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid px-3 px-md-4">
+<div class="container px-3 px-md-4">
 
   {{-- KARTA: Pytanie --}}
   <div class="card mb-4">
     <div class="card-body d-flex justify-content-between gap-3">
       <div class="flex-grow-1">
         <h1 class="h4 fw-bold mb-2">{{ $question->title }}</h1>
-
-        {{-- meta --}}
         <div class="small text-body-secondary">
           Autor: {{ $question->user->name ?? '—' }} · {{ $question->created_at->diffForHumans() }}
         </div>
@@ -22,10 +20,8 @@
           <span class="badge text-bg-success">Otwarte</span>
         @endif
 
-        {{-- Akcje: Zamknij/Otwórz i Usuń --}}
         <div class="mt-2 d-flex justify-content-end gap-2">
           @can('update', $question)
-            {{-- jeśli masz osobny endpoint toggle --}}
             @if(Route::has('questions.toggle'))
               <form method="post" action="{{ route('questions.toggle', $question) }}" class="d-inline">
                 @csrf @method('patch')
@@ -34,7 +30,6 @@
                 </button>
               </form>
             @else
-              {{-- fallback przez update --}}
               <form method="post" action="{{ route('questions.update', $question) }}" class="d-inline">
                 @csrf @method('put')
                 <input type="hidden" name="is_closed" value="{{ $question->is_closed ? 0 : 1 }}">
@@ -75,7 +70,7 @@
     @endif
   @endcan
 
-  {{-- KARTA: Dodaj odpowiedź (pomiędzy pytaniem a odpowiedziami) --}}
+  {{-- KARTA: Dodaj odpowiedź --}}
   @if(!$question->is_closed)
     <div id="reply" class="card mb-4">
       <div class="card-body">
@@ -100,7 +95,7 @@
     <div class="alert alert-secondary">Pytanie jest zamknięte — dodawanie odpowiedzi wyłączone.</div>
   @endif
 
-  {{-- LISTA ODPOWIEDZI (najnowsze na górze) --}}
+  {{-- LISTA ODPOWIEDZI --}}
   @foreach($answers as $a)
     <div class="card mb-3">
       <div class="card-body">
@@ -111,13 +106,19 @@
               {{ $a->user->name ?? '—' }} · {{ $a->created_at->diffForHumans() }}
             </div>
 
-            {{-- załączone obrazki --}}
+            {{-- miniatury (klik = modal) --}}
             @if($a->attachments->count())
               <div class="mt-3 d-flex flex-wrap gap-2">
-                @foreach($a->attachments as $att)
-                  <a href="{{ asset('storage/'.$att->path) }}" target="_blank" class="d-inline-block">
-                    <img src="{{ asset('storage/'.$att->path) }}" alt="załącznik" class="img-thumbnail" style="max-height:120px">
-                  </a>
+                @foreach($a->attachments as $idx => $att)
+                  <img
+                    src="{{ asset('storage/'.$att->path) }}"
+                    alt="załącznik"
+                    class="img-thumbnail"
+                    style="max-height:120px; cursor: zoom-in"
+                    data-group="ans-{{ $a->id }}"
+                    data-index="{{ $idx }}"
+                    data-full="{{ asset('storage/'.$att->path) }}"
+                  >
                 @endforeach
               </div>
             @endif
@@ -140,7 +141,7 @@
           </div>
         </div>
 
-        {{-- Akcje: edycja (pełna szerokość, collapse) / usuwanie --}}
+        {{-- Akcje: edycja pełna szerokość / usuwanie --}}
         <div class="mt-3 d-flex flex-wrap gap-2">
           @can('update', $a)
             <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#edit-ans-{{ $a->id }}">Edytuj</button>
@@ -202,10 +203,27 @@
 
 </div>
 
-{{-- SKRYPTY: głosowanie + wklejanie/drag&drop obrazków do formularza odpowiedzi --}}
+{{-- MODAL: podgląd obrazka --}}
+<div class="modal fade" id="imgModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-body p-0 position-relative">
+        <button type="button" class="btn-close btn-close-white position-absolute end-0 m-3" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+        <img id="imgModalImg" src="" alt="podgląd" class="img-fluid w-100">
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-outline-light btn-sm" id="imgPrev">‹ Poprzedni</button>
+        <div class="small text-white-50" id="imgCaption"></div>
+        <button type="button" class="btn btn-outline-light btn-sm" id="imgNext">Następny ›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- SKRYPTY: głosowanie + wklejanie/drag&drop obrazków + modal galerii --}}
 @push('scripts')
 <script>
-  // --- GŁOSOWANIE (AJAX z JSON) ---
+  // --- GŁOSOWANIE (AJAX) ---
   document.querySelectorAll('form.vote').forEach(form => {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -247,7 +265,7 @@
     });
   });
 
-  // --- WKLEJANIE I PREVIEW OBRAZKÓW W FORMULARZU ODPOWIEDZI ---
+  // --- WKLEJANIE / DRAG&DROP obrazków do formularza odpowiedzi ---
   (function(){
     const ta = document.getElementById('answer-body');
     const fileInput = document.getElementById('answer-images');
@@ -288,6 +306,63 @@
       const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
       if (files.length) addFiles(files);
     });
+  })();
+
+  // --- MODAL GALERII obrazków ---
+  (function(){
+    const modalEl = document.getElementById('imgModal');
+    if (!modalEl) return;
+
+    const modal = new window.bootstrap.Modal(modalEl);
+    const imgEl = document.getElementById('imgModalImg');
+    const captionEl = document.getElementById('imgCaption');
+    const prevBtn = document.getElementById('imgPrev');
+    const nextBtn = document.getElementById('imgNext');
+
+    let groups = {};          // { groupId: [url, url, ...] }
+    let currentGroup = null;  // aktywna grupa
+    let currentIndex = 0;     // indeks aktywnego obrazka
+
+    function buildGroups(){
+      groups = {};
+      document.querySelectorAll('img[data-group]').forEach(img => {
+        const g = img.dataset.group;
+        const url = img.dataset.full || img.src;
+        if (!groups[g]) groups[g] = [];
+        if (!groups[g].includes(url)) groups[g].push(url);
+
+        img.addEventListener('click', () => {
+          currentGroup = g;
+          const arr = groups[g] || [];
+          const idxAttr = Number(img.dataset.index);
+          currentIndex = Number.isFinite(idxAttr) ? idxAttr : Math.max(0, arr.indexOf(url));
+          open(arr[currentIndex], `${currentIndex+1} / ${arr.length}`);
+        }, { passive: true });
+      });
+    }
+
+    function open(url, caption='') {
+      imgEl.src = url;
+      captionEl.textContent = caption;
+      modal.show();
+      // fokus na modal, aby działały strzałki
+      modalEl.focus();
+    }
+    function showIndex(i){
+      const arr = groups[currentGroup] || [];
+      if (!arr.length) return;
+      currentIndex = (i + arr.length) % arr.length; // pętla
+      open(arr[currentIndex], `${currentIndex+1} / ${arr.length}`);
+    }
+
+    prevBtn.addEventListener('click', () => showIndex(currentIndex - 1));
+    nextBtn.addEventListener('click', () => showIndex(currentIndex + 1));
+    modalEl.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') showIndex(currentIndex - 1);
+      if (e.key === 'ArrowRight') showIndex(currentIndex + 1);
+    });
+
+    buildGroups();
   })();
 </script>
 @endpush
