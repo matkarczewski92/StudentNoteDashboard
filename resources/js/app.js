@@ -1,6 +1,7 @@
 // resources/js/app.js
 console.log('app.js LOADED');
-import './bootstrap';
+
+import 'bootstrap'; // to ładuje bundle z Popperem
 
 
 import 'bootstrap/dist/css/bootstrap.min.css';

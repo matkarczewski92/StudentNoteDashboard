@@ -1,8 +1,5 @@
-// Fonts
-@import url('https://fonts.bunny.net/css?family=Nunito');
-
-// Variables
-@import 'variables';
-
-// Bootstrap
-@import 'bootstrap/scss/bootstrap';
+/* resources/sass/app.scss */
+@import url("https://fonts.bunny.net/css?family=Nunito");
+/* ewentualne nadpisania zmiennych PRZED importem bootstrap */
+/* $font-family-sans-serif: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; */
+@import "bootstrap/scss/bootstrap";
