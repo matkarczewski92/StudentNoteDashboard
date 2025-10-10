@@ -14,4 +14,7 @@ Route::middleware(['auth','verified'])->group(function () {
     Route::put('/answers/{answer}', [AnswerController::class,'update'])->name('answers.update');
     Route::delete('/answers/{answer}', [AnswerController::class,'destroy'])->name('answers.destroy');
     Route::post('/answers/{answer}/vote', [AnswerController::class,'vote'])->name('answers.vote');
+
+
+
 });

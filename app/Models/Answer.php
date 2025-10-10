@@ -19,4 +19,8 @@ class Answer extends Model
     public function canEditBy(User $user): bool {
         return $user->id === $this->user_id && $this->created_at->addMinutes(30)->isFuture();
     }
+    public function attachments()
+    {
+        return $this->hasMany(AnswerAttachment::class);
+    }
 }

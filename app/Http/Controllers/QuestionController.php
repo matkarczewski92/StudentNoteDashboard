@@ -10,7 +10,8 @@ class QuestionController extends Controller
 {
     public function index()
     {
-        $questions = Question::withCount('answers')
+        $questions = Question::with(['user'])
+            ->withCount('answers')
             ->latest()
             ->paginate(20);
 
@@ -42,11 +43,20 @@ class QuestionController extends Controller
     public function update(Request $request, Question $question)
     {
         $this->authorize('update', $question);
+
+        // szybka ścieżka: sam toggle statusu
+        if ($request->has('is_closed') && !$request->has('title') && !$request->has('body')) {
+            $question->update(['is_closed' => (bool) $request->boolean('is_closed')]);
+            return back()->with('ok', $question->is_closed ? 'Pytanie zamknięte.' : 'Pytanie otwarte.');
+        }
+
+        // pełna edycja pytania
         $data = $request->validate([
-            'title' => ['required','string','max:255'],
-            'body'  => ['nullable','string'],
+            'title'     => ['required','string','max:255'],
+            'body'      => ['nullable','string'],
             'is_closed' => ['sometimes','boolean'],
         ]);
+
         $question->update($data);
         return back()->with('ok','Zaktualizowano pytanie.');
     }
@@ -57,4 +67,5 @@ class QuestionController extends Controller
         $question->delete();
         return redirect()->route('questions.index')->with('ok','Usunięto pytanie.');
     }
+    
 }
