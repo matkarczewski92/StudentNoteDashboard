@@ -56,5 +56,9 @@ class User extends Authenticatable
         return $this->hasMany(\App\Models\Event::class);
     }
 
-
+    public function hasAnyRole(array $roles): bool
+    {
+        // podmień na swoją logikę (np. spatie/permission -> $this->hasAnyRole($roles))
+        return in_array($this->role ?? 'user', $roles, true);
+    }
 }

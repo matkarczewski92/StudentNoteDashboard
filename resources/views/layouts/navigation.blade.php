@@ -17,7 +17,7 @@
             <a class="nav-link me-3" href="{{ route('dashboard') }}"><i class="bi bi-house"></i> Home</a> 
             <a class="nav-link me-3" href="{{ route('schedule.index') }}"><i class="bi bi-calendar-date"></i> Harmonogram</a> 
             <a class="nav-link me-3" href="{{ route('dashboard') }}"><i class="bi bi-journal-check"></i> Notatki</a> 
-            <a class="nav-link me-3" href="{{ route('dashboard') }}"><i class="bi bi-cup-hot"></i> Tablica</a> 
+            <a class="nav-link me-3" href="{{ route('questions.index') }}"><i class="bi bi-cup-hot"></i> Tablica</a> 
             
 
             @can('moderate')
