@@ -10,15 +10,20 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
+        // Avoid mass-assignment issues for non-fillable attributes like 'role'
+        $user = User::updateOrCreate(
             ['album' => '00000'],
             [
                 'name' => 'Admin',
                 'email' => 'admin@panel.local',
                 'password' => Hash::make('root_admin'),
-                'role' => 'admin',
-                'email_verified_at' => now(),
             ]
         );
+
+        // Set attributes that may be guarded explicitly
+        $user->forceFill([
+            'role' => 'admin',
+            'email_verified_at' => now(),
+        ])->save();
     }
 }
