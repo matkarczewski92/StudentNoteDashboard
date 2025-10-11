@@ -55,6 +55,21 @@
     </div>
   </div>
 
+  @if(auth()->id() !== $user->id && ($user->role ?? 'user') !== 'admin')
+  <div class="card border-danger">
+    <div class="card-body d-flex justify-content-between align-items-center">
+      <div>
+        <div class="fw-semibold text-danger">Usuń konto użytkownika</div>
+        <div class="small text-body-secondary">Operacja nieodwracalna.</div>
+      </div>
+      <form method="post" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('Na pewno trwale usunąć konto?');">
+        @csrf @method('delete')
+        <button class="btn btn-outline-danger btn-sm">Usuń konto</button>
+      </form>
+    </div>
+  </div>
+  @endif
+
   <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-sm">Powrót</a>
 </div>
 @endsection

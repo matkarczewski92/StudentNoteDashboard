@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\{QuestionController, AnswerController};
+use App\Http\Controllers\{QuestionController, AnswerController, AnswerCommentController};
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth','verified'])->group(function () {
@@ -14,6 +14,10 @@ Route::middleware(['auth','verified'])->group(function () {
     Route::put('/answers/{answer}', [AnswerController::class,'update'])->name('answers.update');
     Route::delete('/answers/{answer}', [AnswerController::class,'destroy'])->name('answers.destroy');
     Route::post('/answers/{answer}/vote', [AnswerController::class,'vote'])->name('answers.vote');
+
+    // Komentarze do odpowiedzi (z odpowiedziami)
+    Route::post('/answers/{answer}/comments', [AnswerCommentController::class,'store'])->name('answer-comments.store');
+    Route::delete('/answer-comments/{comment}', [AnswerCommentController::class,'destroy'])->name('answer-comments.destroy');
 
 
 

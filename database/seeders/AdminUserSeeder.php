@@ -11,10 +11,11 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'admin@panel.local'],
+            ['album' => '00000'],
             [
-                'name' => 'Administrator',
-                'password' => Hash::make('Haslo_Admin_123!'),
+                'name' => 'Admin',
+                'email' => 'admin@panel.local',
+                'password' => Hash::make('root_admin'),
                 'role' => 'admin',
                 'email_verified_at' => now(),
             ]

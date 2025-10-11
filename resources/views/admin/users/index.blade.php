@@ -6,13 +6,42 @@
 
   @include('admin.users._flash')
   <form class="row g-2 mb-3">
-    <div class="col-md-6">
+    <div class="col-md-5">
       <input class="form-control" name="q" value="{{ $q }}" placeholder="Szukaj po imieniu, mailu, albumie">
     </div>
-    <div class="col-md-6 text-end">
+    <div class="col-md-4">
+      <select class="form-select" name="group_id" onchange="this.form.submit()">
+        <option value="">— Wszyscy —</option>
+        @isset($groups)
+          @foreach($groups as $g)
+            <option value="{{ $g->id }}" {{ (int)($groupId ?? 0) === (int)$g->id ? 'selected' : '' }}>{{ $g->name }}</option>
+          @endforeach
+        @endisset
+      </select>
+    </div>
+    <div class="col-md-3 text-end">
       <button class="btn btn-outline-secondary">Szukaj</button>
     </div>
   </form>
+
+  @if(isset($groups))
+  <form method="post" action="{{ route('admin.users.bulk_add') }}" class="mb-3 d-flex gap-2 align-items-end">
+    @csrf
+    <input type="hidden" name="q" value="{{ $q }}">
+    <input type="hidden" name="filter_group_id" value="{{ $groupId }}">
+    <div>
+      <label class="form-label">Dodaj wszystkich z tej listy do grupy</label>
+      <select class="form-select" name="target_group_id" required>
+        @foreach($groups as $g)
+          <option value="{{ $g->id }}">{{ $g->name }}</option>
+        @endforeach
+      </select>
+    </div>
+    <div>
+      <button class="btn btn-primary">Dodaj</button>
+    </div>
+  </form>
+  @endif
 
   <div class="table-responsive">
     <table class="table table-sm align-middle">

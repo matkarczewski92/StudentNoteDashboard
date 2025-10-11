@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
 
 class Question extends Model
 {
-    protected $fillable = ['user_id','title','body','is_closed'];
+    protected $fillable = ['user_id','title','body','is_closed','group_id'];
 
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function group(): BelongsTo { return $this->belongsTo(Group::class); }
     public function answers(): HasMany { return $this->hasMany(Answer::class); }
     public function poll(): BelongsTo { return $this->belongsTo(Poll::class); }
 

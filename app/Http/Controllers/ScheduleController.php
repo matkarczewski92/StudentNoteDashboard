@@ -32,14 +32,15 @@ class ScheduleController extends Controller
             ->orderBy('deadline');
 
         if (!in_array($user->role, ['admin', 'moderator'], true)) {
-            if (!empty($userGroupIds)) {
-                $baseQuery->whereHas('groups', function ($q) use ($userGroupIds) {
-                    $q->whereIn('groups.id', $userGroupIds);
-                });
-            } else {
-                // brak grup => brak wyników
-                $baseQuery->whereRaw('1 = 0');
-            }
+            // widoczne publiczne (bez grup) LUB z moich grup
+            $baseQuery->where(function ($w) use ($userGroupIds) {
+                $w->doesntHave('groups');
+                if (!empty($userGroupIds)) {
+                    $w->orWhereHas('groups', function ($q) use ($userGroupIds) {
+                        $q->whereIn('groups.id', $userGroupIds);
+                    });
+                }
+            });
         }
 
         $events = $baseQuery->get();
@@ -48,13 +49,14 @@ class ScheduleController extends Controller
         $allGroups  = Group::orderBy('name')->get();
         $userGroups = $user->groups()->orderBy('name')->get(['groups.id','groups.name']);
 
-        // Twoje dodatkowe dane do widoku (np. siatka kalendarza)
+        // macierz kalendarza
         $weeks = $this->buildCalendarMatrix($firstDay);
 
         return view('schedule.index', compact(
             'weeks', 'events', 'userGroups', 'allGroups', 'year', 'month', 'firstDay'
         ));
     }
+
     /**
      * Zapis nowego wydarzenia.
      */
@@ -76,14 +78,17 @@ class ScheduleController extends Controller
             'deadline'    => Carbon::parse($validated['deadline']),
             'description' => $validated['description'] ?? null,
         ]);
-        $event->deadline = \Carbon\Carbon::parse($validated['deadline']);
+        $event->deadline = Carbon::parse($validated['deadline']);
         $event->user()->associate($user);
         $event->save();
 
-        // Podpinamy grupy (jeśli wybrano)
-        if (!empty($validated['group_ids'])) {
-            $event->groups()->sync($validated['group_ids']);
+        // Podpinamy grupy (publiczne = brak wyboru); zwykły użytkownik może tylko swoje grupy
+        $selected = array_map('intval', $validated['group_ids'] ?? []);
+        if (!in_array($user->role, ['admin', 'moderator'], true)) {
+            $allowed = $user->groups()->pluck('groups.id')->all();
+            $selected = array_values(array_intersect($selected, $allowed));
         }
+        $event->groups()->sync($selected);
 
         return back()->with('status', 'Wydarzenie dodane.');
     }
@@ -101,11 +106,16 @@ class ScheduleController extends Controller
         ]);
 
         $event->title       = $validated['title'];
-        $event->deadline    = \Carbon\Carbon::parse($validated['deadline']);
+        $event->deadline    = Carbon::parse($validated['deadline']);
         $event->description = $validated['description'] ?? null;
         $event->save();
 
-        $event->groups()->sync($validated['group_ids'] ?? []);
+        $selected = array_map('intval', $validated['group_ids'] ?? []);
+        if (!in_array($request->user()->role, ['admin', 'moderator'], true)) {
+            $allowed = $request->user()->groups()->pluck('groups.id')->all();
+            $selected = array_values(array_intersect($selected, $allowed));
+        }
+        $event->groups()->sync($selected);
 
         return back()->with('status', 'Wydarzenie zaktualizowane.');
     }
@@ -127,10 +137,10 @@ class ScheduleController extends Controller
      */
     private function buildCalendarMatrix(Carbon $firstDay): array
     {
-        // Początek siatki: poniedziałek tygodnia zawierającego 1-szy dzień miesiąca
+        // POCZĄTEK: poniedziałek tygodnia zawierającego 1-szy dzień miesiąca
         $gridStart = $firstDay->copy()->startOfWeek(Carbon::MONDAY);
 
-        // Koniec siatki: niedziela tygodnia zawierającego ostatni dzień miesiąca
+        // KONIEC: niedziela tygodnia zawierającego ostatni dzień miesiąca
         $gridEnd = $firstDay->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY);
 
         $cursor = $gridStart->copy();
@@ -138,7 +148,6 @@ class ScheduleController extends Controller
         $week = [];
 
         while ($cursor <= $gridEnd) {
-            // Komórki spoza miesiąca ustawiamy na null (ładniej wygląda)
             $week[] = $cursor->month === $firstDay->month ? $cursor->copy() : null;
 
             if (count($week) === 7) {
@@ -156,3 +165,4 @@ class ScheduleController extends Controller
         return $weeks;
     }
 }
+

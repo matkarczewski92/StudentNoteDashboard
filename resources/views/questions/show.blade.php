@@ -67,6 +67,23 @@
               <input name="options[]" class="form-control" placeholder="Opcja 1" required>
               <input name="options[]" class="form-control" placeholder="Opcja 2" required>
             </div>
+            @php $myGroups = auth()->user()?->groups()->orderBy('name')->get() ?? collect(); @endphp
+            @if($myGroups->count())
+              <div class="d-flex align-items-center gap-3 mt-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="1" id="pl_only_group" name="only_group">
+                  <label class="form-check-label" for="pl_only_group">Widoczne tylko dla mojej grupy</label>
+                </div>
+                <select name="group_id" id="pl_group_id" class="form-select" style="max-width: 320px" disabled>
+                  @foreach($myGroups as $g)
+                    <option value="{{ $g->id }}">{{ $g->name }}</option>
+                  @endforeach
+                </select>
+              </div>
+              @push('scripts')
+              <script>document.getElementById('pl_only_group')?.addEventListener('change',e=>{document.getElementById('pl_group_id').disabled=!e.target.checked;});</script>
+              @endpush
+            @endif
             <div class="d-flex align-items-center justify-content-between mt-2">
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" value="1" id="q_is_multiple" name="is_multiple">
@@ -221,6 +238,68 @@
             </div>
           </div>
         @endcan
+
+        {{-- Komentarze do odpowiedzi --}}
+        <div class="mt-3 ms-2">
+          <h6 class="small text-body-secondary">Komentarze</h6>
+          @php $topComments = $a->comments()->whereNull('parent_id')->with(['user','replies.user'])->latest()->get(); @endphp
+          <div class="vstack gap-2">
+            @forelse($topComments as $c)
+              <div class="border rounded p-2">
+                <div class="small text-body-secondary d-flex justify-content-between">
+                  <div>{{ $c->user->name ?? '—' }} • {{ $c->created_at->diffForHumans() }}</div>
+                  <div class="d-flex gap-2">
+                    <a href="#" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#ansc-reply-{{ $c->id }}">Odpowiedz</a>
+                    @php $canOwner = auth()->id() === $c->user_id && $c->created_at->addHour()->isFuture(); @endphp
+                    @if($canOwner || (auth()->user() && in_array(auth()->user()->role, ['admin','moderator'], true)))
+                      <form method="post" action="{{ route('answer-comments.destroy', $c) }}" onsubmit="return confirm('Usunąć komentarz?')">
+                        @csrf @method('delete')
+                        <button class="btn btn-outline-danger btn-sm">Usuń</button>
+                      </form>
+                    @endif
+                  </div>
+                </div>
+                <div class="mt-1">{{ $c->body }}</div>
+
+                @if($c->replies->count())
+                  <div class="mt-2 ms-4 vstack gap-2">
+                    @foreach($c->replies as $r)
+                      <div class="border rounded p-2">
+                        <div class="small text-body-secondary d-flex justify-content-between">
+                          <div>{{ $r->user->name ?? '—' }} • {{ $r->created_at->diffForHumans() }}</div>
+                          @php $canOwnerR = auth()->id() === $r->user_id && $r->created_at->addHour()->isFuture(); @endphp
+                          @if($canOwnerR || (auth()->user() && in_array(auth()->user()->role, ['admin','moderator'], true)))
+                            <form method="post" action="{{ route('answer-comments.destroy', $r) }}" onsubmit="return confirm('Usunąć komentarz?')">
+                              @csrf @method('delete')
+                              <button class="btn btn-outline-danger btn-sm">Usuń</button>
+                            </form>
+                          @endif
+                        </div>
+                        <div class="mt-1">{{ $r->body }}</div>
+                      </div>
+                    @endforeach
+                  </div>
+                @endif
+
+                <div id="ansc-reply-{{ $c->id }}" class="collapse mt-2 ms-4">
+                  <form method="post" action="{{ route('answer-comments.store', $a) }}" class="vstack gap-2">
+                    @csrf
+                    <input type="hidden" name="parent_id" value="{{ $c->id }}">
+                    <textarea name="body" rows="2" class="form-control" placeholder="Napisz odpowiedź..." minlength="2" required></textarea>
+                    <div class="text-end"><button class="btn btn-primary btn-sm">Dodaj odpowiedź</button></div>
+                  </form>
+                </div>
+              </div>
+            @empty
+              <div class="text-body-secondary small">Brak komentarzy.</div>
+            @endforelse
+          </div>
+          <form method="post" action="{{ route('answer-comments.store', $a) }}" class="mt-2">
+            @csrf
+            <textarea name="body" rows="2" class="form-control" placeholder="Dodaj komentarz..." minlength="2" required></textarea>
+            <div class="text-end mt-1"><button class="btn btn-outline-primary btn-sm">Dodaj komentarz</button></div>
+          </form>
+        </div>
       </div>
     </div>
   @endforeach

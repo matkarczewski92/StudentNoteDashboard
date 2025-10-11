@@ -23,4 +23,9 @@ class Answer extends Model
     {
         return $this->hasMany(AnswerAttachment::class);
     }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(AnswerComment::class);
+    }
 }

@@ -53,6 +53,12 @@
                   {{ $poll->is_closed ? 'disabled' : '' }}
                 >
                 <label class="form-check-label flex-grow-1" for="opt{{ $opt->id }}">{{ $opt->label }}</label>
+                @can('update', $poll)
+                  <form method="post" action="{{ route('poll_options.destroy', [$poll, $opt]) }}" onsubmit="return confirm('Usunąć opcję?')">
+                    @csrf @method('delete')
+                    <button class="btn btn-outline-danger btn-sm" title="Usuń opcję">&times;</button>
+                  </form>
+                @endcan
                 <span class="small text-body-secondary" data-votes="{{ $opt->id }}">{{ $votes }}</span>
               </div>
               <div class="progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">

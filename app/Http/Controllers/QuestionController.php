@@ -10,17 +10,32 @@ class QuestionController extends Controller
 {
     public function index()
     {
-        $questions = Question::with(['user'])
+        $user = Auth::user();
+        $q = Question::with(['user','group'])
             ->withCount('answers')
-            ->latest()
-            ->paginate(20);
+            ->latest();
+
+        if ($user && !in_array($user->role ?? 'user', ['admin','moderator'], true)) {
+            $groupIds = $user->groups()->pluck('groups.id')->all();
+            $q->where(function($w) use ($groupIds) {
+                $w->whereNull('group_id');
+                if (!empty($groupIds)) { $w->orWhereIn('group_id', $groupIds); }
+            });
+        }
+
+        $questions = $q->paginate(20);
 
         return view('questions.index', compact('questions'));
     }
 
     public function show(Question $question)
     {
-        $question->load(['user']);
+        $question->load(['user','group']);
+        $user = Auth::user();
+        if ($question->group_id) {
+            $allowed = $user && (in_array($user->role ?? 'user', ['admin','moderator'], true) || $user->groups()->where('groups.id',$question->group_id)->exists());
+            abort_unless($allowed, 403);
+        }
         $answers = $question->answers()
             ->with(['user'])
             ->latest()
@@ -34,9 +49,23 @@ class QuestionController extends Controller
         $data = $request->validate([
             'title' => ['required','string','max:255'],
             'body'  => ['nullable','string'],
+            'only_group' => ['sometimes','boolean'],
+            'group_id' => ['nullable','integer','exists:groups,id'],
         ]);
 
-        $question = Question::create($data + ['user_id' => Auth::id()]);
+        $groupId = null;
+        if ($request->boolean('only_group') && !empty($data['group_id'])) {
+            // dopuszczaj tylko grupy autora
+            $isMine = Auth::user()?->groups()->where('groups.id', $data['group_id'])->exists();
+            $groupId = $isMine ? (int)$data['group_id'] : null;
+        }
+
+        $question = Question::create([
+            'user_id' => Auth::id(),
+            'title'   => $data['title'],
+            'body'    => $data['body'] ?? null,
+            'group_id'=> $groupId,
+        ]);
         return redirect()->route('questions.show', $question)->with('ok','Pytanie dodane.');
     }
 

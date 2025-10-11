@@ -14,6 +14,23 @@
           <label class="form-label">Szybkie pytanie</label>
           <input name="title" class="form-control form-control-lg" placeholder="Zadaj pytanie…" required>
         </div>
+        @php $myGroups = auth()->user()?->groups()->orderBy('name')->get() ?? collect(); @endphp
+        @if($myGroups->count())
+        <div class="mb-3 d-flex align-items-center gap-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="q_only_group" name="only_group" value="1">
+            <label class="form-check-label" for="q_only_group">Widoczne tylko dla mojej grupy</label>
+          </div>
+          <select name="group_id" id="q_group_id" class="form-select" style="max-width: 320px" disabled>
+            @foreach($myGroups as $g)
+              <option value="{{ $g->id }}">{{ $g->name }}</option>
+            @endforeach
+          </select>
+        </div>
+        @push('scripts')
+        <script>document.getElementById('q_only_group')?.addEventListener('change',e=>{document.getElementById('q_group_id').disabled=!e.target.checked;});</script>
+        @endpush
+        @endif
         <div class="text-end">
           <button class="btn btn-primary">Dodaj</button>
         </div>

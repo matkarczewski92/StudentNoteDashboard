@@ -86,9 +86,7 @@
                                 <strong>{{ $e->title }}</strong>
                                 — {{ $e->deadline->format('H:i') }}
                                 @if ($e->groups->isNotEmpty())
-                                    <span class="text-muted">
-                                        (GRUPY: {{ $e->groups->pluck('name')->join(', ') }})
-                                    </span>
+                                    <span class="badge text-bg-warning text-dark ms-1">Grupy: {{ $e->groups->pluck('name')->join(', ') }}</span>
                                 @endif
 
                                 @can('update', $e)
@@ -151,7 +149,11 @@
                        class="form-control" required>
               </div>
             @php $selected = collect(old('group_ids', $eventForModal->groups->pluck('id')->all())); @endphp
-            <div class="mb-3">
+            <div class="mb-2 form-check">
+              <input class="form-check-input" type="checkbox" id="edit-{{ $eventForModal->id }}-only-groups" {{ $selected->count() ? 'checked' : '' }}>
+              <label class="form-check-label" for="edit-{{ $eventForModal->id }}-only-groups">Widoczne tylko dla wybranych grup</label>
+            </div>
+            <div class="mb-3 {{ $selected->count() ? '' : 'd-none' }}" id="edit-{{ $eventForModal->id }}-groups-wrap">
             <label class="form-label d-block">Dotyczy grup:</label>
             <div class="row row-cols-1 row-cols-sm-2 g-2">
                 @foreach($allGroups as $g)
@@ -160,7 +162,7 @@
                     <input class="form-check-input" type="checkbox"
                             id="edit-{{ $eventForModal->id }}-g-{{ $g->id }}"
                             name="group_ids[]" value="{{ $g->id }}"
-                            @checked($selected->contains($g->id))>
+                            @checked($selected->contains($g->id)) {{ $selected->count() ? '' : 'disabled' }}>
                     <label class="form-check-label" for="edit-{{ $eventForModal->id }}-g-{{ $g->id }}">{{ $g->name }}</label>
                     </div>
                 </div>
@@ -216,8 +218,13 @@
             @error('deadline') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
 
-          {{-- Grupy (multi-select) --}}
-        <div class="mb-3">
+          {{-- Widoczność: publiczne vs wybrane grupy --}}
+        <div class="mb-2 form-check">
+          <input class="form-check-input" type="checkbox" id="create_only_groups">
+          <label class="form-check-label" for="create_only_groups">Widoczne tylko dla wybranych grup</label>
+        </div>
+
+        <div class="mb-3 d-none" id="create_groups_wrap">
         <label class="form-label d-block">Dotyczy grup:</label>
         <div class="row row-cols-1 row-cols-sm-2 g-2">
             @foreach($allGroups as $g)
@@ -226,7 +233,7 @@
                 <input class="form-check-input" type="checkbox"
                         id="create-g-{{ $g->id }}"
                         name="group_ids[]" value="{{ $g->id }}"
-                        @checked(collect(old('group_ids', []))->contains($g->id))>
+                        @checked(collect(old('group_ids', []))->contains($g->id)) disabled>
                 <label class="form-check-label" for="create-g-{{ $g->id }}">{{ $g->name }}</label>
                 </div>
             </div>
@@ -252,3 +259,36 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+  (function(){
+    const toggle = document.getElementById('create_only_groups');
+    const wrap = document.getElementById('create_groups_wrap');
+    const inputs = wrap ? wrap.querySelectorAll('input[type="checkbox"][name="group_ids[]"]') : [];
+    if (toggle && wrap) {
+      toggle.addEventListener('change', () => {
+        wrap.classList.toggle('d-none', !toggle.checked);
+        inputs.forEach(i => i.disabled = !toggle.checked);
+      });
+    }
+    // Auto-init if old values were present
+    if (wrap && [...inputs].some(i => i.checked)) { toggle.checked = true; wrap.classList.remove('d-none'); inputs.forEach(i=>i.disabled=false); }
+  })();
+  // Edit modals toggles
+  document.querySelectorAll('[id^="editEventModal-"]').forEach(modal => {
+    const id = modal.id.replace('editEventModal-','');
+    const wrap = modal.querySelector('#edit-'+id+'-groups-wrap');
+    if (!wrap) return;
+    const chk = modal.querySelector('#edit-'+id+'-only-groups');
+    const inputs = wrap.querySelectorAll('input[name="group_ids[]"]');
+    const hasAny = [...inputs].some(i=>i.checked);
+    if (chk) {
+      const apply = () => { wrap.classList.toggle('d-none', !chk.checked); inputs.forEach(i=> i.disabled = !chk.checked); };
+      if (hasAny) { chk.checked = true; }
+      apply();
+      chk.addEventListener('change', apply);
+    }
+  });
+</script>
+@endpush

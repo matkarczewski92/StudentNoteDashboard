@@ -12,12 +12,26 @@ class PollController extends Controller
 {
     public function index()
     {
-        $polls = Poll::withCount('votes')->latest()->paginate(20);
+        $user = Auth::user();
+        $q = Poll::with(['group'])->withCount('votes')->latest();
+        if ($user && !in_array($user->role ?? 'user', ['admin','moderator'], true)) {
+            $groupIds = $user->groups()->pluck('groups.id')->all();
+            $q->where(function($w) use ($groupIds){
+                $w->whereNull('group_id');
+                if (!empty($groupIds)) { $w->orWhereIn('group_id', $groupIds); }
+            });
+        }
+        $polls = $q->paginate(20);
         return view('polls.index', compact('polls'));
     }
 
     public function show(Poll $poll)
     {
+        $user = Auth::user();
+        if ($poll->group_id) {
+            $allowed = $user && (in_array($user->role ?? 'user', ['admin','moderator'], true) || $user->groups()->where('groups.id', $poll->group_id)->exists());
+            abort_unless($allowed, 403);
+        }
         $poll->load(['options' => function($q){ $q->withCount('votes'); }]);
         $userId = Auth::id();
         $userVoteIds = PollVote::where('poll_id', $poll->id)
@@ -43,13 +57,22 @@ class PollController extends Controller
             'options.*' => ['required','string','max:255'],
             'is_multiple' => ['sometimes','boolean'],
             'question_id' => ['sometimes','integer','exists:questions,id'],
+            'only_group' => ['sometimes','boolean'],
+            'group_id' => ['nullable','integer','exists:groups,id'],
         ]);
+
+        $groupId = null;
+        if ($request->boolean('only_group') && !empty($data['group_id'])) {
+            $isMine = Auth::user()?->groups()->where('groups.id', $data['group_id'])->exists();
+            if ($isMine) { $groupId = (int)$data['group_id']; }
+        }
 
         $poll = Poll::create([
             'title' => $data['title'],
             'is_closed' => false,
             'is_multiple' => (bool)($data['is_multiple'] ?? false),
             'user_id' => Auth::id(),
+            'group_id' => $groupId,
         ]);
         foreach ($data['options'] as $label) {
             if (trim($label) !== '') {

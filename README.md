@@ -36,11 +36,14 @@ Szybka instalacja
 
 5) Uruchomienie
    - php artisan serve
-   - Zaloguj się: admin@panel.local / Haslo_Admin_123!
-   - Po zalogowaniu zalecana zmiana hasła i danych admina.
+   - Logowanie admina (pierwsze uruchomienie):
+     - login (nr albumu): 00000
+     - hasło: root_admin
+     - Imię i nazwisko: Admin (można zmienić po zalogowaniu)
+   - Po zalogowaniu zalecana zmiana danych admina (imię i nazwisko, nr albumu, hasło) w profilu.
 
 Seed danych (minimalny do startu)
- - AdminUserSeeder: tworzy konto administratora (email: admin@panel.local, hasło: Haslo_Admin_123!).
+ - AdminUserSeeder: tworzy konto administratora z loginem (nr albumu) 00000 i hasłem root_admin (imię i nazwisko: Admin; email techniczny: admin@panel.local).
  - BasicDataSeeder: dodaje podstawowe wpisy słownikowe (Semestr 1, przykładowe przedmioty Wykłady/Ćwiczenia, Grupa A), aby moduł Notatek działał od razu po instalacji.
 
 Uwaga dot. motywów

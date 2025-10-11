@@ -19,6 +19,7 @@
             <a class="nav-link me-3" href="{{ route('notes.index') }}"><i class="bi bi-journal-check"></i> Notatki</a>
             <a class="nav-link me-3" href="{{ route('questions.index') }}"><i class="bi bi-cup-hot"></i> Tablica</a>
             <a class="nav-link me-3" href="{{ route('polls.index') }}"><i class="bi bi-check2-square"></i> Głosowania</a>
+            <a class="nav-link me-3" href="{{ route('attendance.index') }}"><i class="bi bi-people"></i> Lista obecności</a>
 
             @can('moderate')
             {{-- <a class="nav-link me-3" href="{{ route('dashboard') }}">Panel moderatora</a> --}}
@@ -41,6 +42,9 @@
                             <a class="dropdown-item" href="{{ route('profile.edit') }}">
                                 Edycja profilu
                             </a>
+                            @auth
+                            <a class="dropdown-item" href="{{ route('attendance.index') }}">Lista obecności</a>
+                            @endauth
                             @can('admin')
                             <div class="dropdown-divider"></div>
                             <span class="dropdown-item-text text-body-secondary small">Administrator</span>
@@ -64,4 +68,3 @@
         </div>
     </div>
 </nav>
-

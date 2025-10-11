@@ -53,6 +53,11 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // Blokada usuwania konta administratora
+        if (($user->role ?? 'user') === 'admin') {
+            return back()->withErrors(['userDeletion' => 'Konto administratora nie może zostać usunięte.']);
+        }
+
         Auth::logout();
 
         $user->delete();
