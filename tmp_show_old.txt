@@ -7,7 +7,7 @@
     <div class="card-body d-flex justify-content-between gap-3">
       <div class="flex-grow-1">
         <h1 class="h4 fw-bold mb-2">{{ $poll->title }}</h1>
-        <div class="small text-body-secondary">Autor: {{ $poll->user->name ?? '?' }} • {{ $poll->created_at->diffForHumans() }}</div>
+        <div class="small text-body-secondary">Autor: {{ $poll->user->name ?? '?' }} · {{ $poll->created_at->diffForHumans() }}</div>
       </div>
       <div class="text-end">
         @if($poll->is_closed)
@@ -66,7 +66,7 @@
               </div>
             @endforeach
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-              <div class="small text-body-secondary">Wyniki na żywo • <span id="total">0</span> głosów</div>
+              <div class="small text-body-secondary">Wyniki na żywo · <span id="total">0</span> głosów</div>
               <div id="vote-actions" class="d-flex gap-2">
                 @if(!$poll->is_closed)
                   <button id="voteBtn" type="button" class="btn btn-success btn-sm">{{ $hasVoted ? 'Edytuj głos' : 'Głosuj' }}</button>
@@ -160,7 +160,7 @@
       const clearBtn = document.getElementById('clearBtn');
       const editInfo = document.getElementById('editInfo');
 
-      // aktualizacja zaznaczeń do obecnego stanu głosów
+      // update selection to reflect current votes
       if (!force && window.__pollDirtySelection) {
         // użytkownik coś zaznaczył i jeszcze nie zapisał — nie nadpisujemy wyboru
       } else {
@@ -192,7 +192,7 @@
     } catch (e) { console.error(e); }
   }
 
-  // Śledzenie lokalnej zmiany zaznaczeń, aby nie nadpisywać ich auto-refresh’em
+  // śledzenie lokalnej zmiany zaznaczeń, aby nie nadpisywać ich auto-refresh'em
   window.__pollDirtySelection = false;
   document.querySelectorAll('#vote-form input[type="checkbox"], #vote-form input[type="radio"]').forEach(el => {
     el.addEventListener('change', () => { window.__pollDirtySelection = true; });
