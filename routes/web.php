@@ -5,17 +5,14 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', '/dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('/dashboard', 'dashboard')->name('dashboard');
-
-    require __DIR__.'/web/profile.php';
-    require __DIR__.'/web/schedule.php';
-    require __DIR__.'/web/qa.php';
-    require __DIR__.'/web/polls.php';
+    Route::get('/dashboard', \App\Http\Controllers\DashboardController::class)->name('dashboard');
 });
 
+// Ładowanie plików routes/web/*.php automatycznie
+foreach (glob(__DIR__.'/web/*.php') as $routeFile) {
+    require $routeFile;
+}
 
-
-require __DIR__.'/web/admin.php';
 require __DIR__.'/auth.php';
     
 

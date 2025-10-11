@@ -1,0 +1,141 @@
+/* Custom themes based on Bootstrap 5.3 CSS variables */
+
+:root[data-bs-theme='dark'] {
+  color-scheme: dark;
+}
+
+:root[data-bs-theme='light'] {
+  color-scheme: light;
+  --bs-body-bg: #f8f9fb;
+  --bs-body-color: #212529;
+  --bs-card-bg: #ffffff;
+  --bs-border-color: #dee2e6;
+  --bs-primary: #0d6efd;
+  --bs-link-color: #0d6efd;
+  --bs-secondary-color: #6c757d;
+}
+
+/* Dopasowanie nawigacji i dropdownów w jasnym motywie */
+[data-bs-theme='light'] .navbar {
+  --bs-navbar-color: #212529;                /* kolor linków w navbarze */
+  --bs-navbar-hover-color: #0d6efd;          /* hover */
+  --bs-navbar-brand-color: #212529;          /* nazwa aplikacji */
+  --bs-navbar-brand-hover-color: #0d6efd;
+}
+
+[data-bs-theme='light'] .dropdown-menu {
+  --bs-dropdown-bg: #ffffff;
+  --bs-dropdown-color: #212529;
+  --bs-dropdown-link-color: #212529;
+  --bs-dropdown-link-hover-color: #212529;
+  --bs-dropdown-link-hover-bg: #f1f3f5;
+  --bs-dropdown-link-active-bg: #e9ecef;
+  --bs-dropdown-border-color: #dee2e6;
+}
+
+/* Ocean: ciemny niebiesko-turkusowy (czytelniejsze linki i secondary) */
+:root[data-bs-theme='ocean'] {
+  color-scheme: dark;
+  --bs-body-bg: #0b1f2a;           /* tło */
+  --bs-body-color: #e2f7ff;        /* główny tekst */
+  --bs-card-bg: #0f2a38;           /* karty */
+  --bs-border-color: #1b4353;      /* obramowania */
+  --bs-primary: #17a2b8;           /* akcent */
+  --bs-link-color: #78e6ff;        /* jaśniejsze linki */
+  --bs-link-hover-color: #b0f2ff;
+  --bs-secondary-color: #b8d6e2;   /* tekst body-secondary jaśniejszy */
+  --bs-emphasis-color: #ffffff;    /* elementy emphasis */
+}
+
+/* Forest: rozjaśnione tło w kierunku zieleni */
+:root[data-bs-theme='forest'] {
+  color-scheme: light;
+  --bs-body-bg: #eaf5ef;           /* jasna zieleń */
+  --bs-body-color: #103327;        /* kontrastujący tekst */
+  --bs-card-bg: #ffffff;
+  --bs-border-color: #b9d0c4;
+  --bs-primary: #20c997;
+  --bs-link-color: #198754;        /* zieleń bootstrapowa */
+  --bs-link-hover-color: #157347;
+  --bs-secondary-color: #3f6b5b;   /* tekst body-secondary */
+}
+
+/* Candy: JAŚNIEJ i CUKIERKOWO – pastel róż/fiolet z mocnymi akcentami */
+:root[data-bs-theme='candy'] {
+  color-scheme: light;
+  --bs-body-bg: #fff0fa;           /* bardzo jasne tło */
+  --bs-body-color: #4a1340;        /* wyraźny, ciemny tekst */
+  --bs-card-bg: #ffffff;           /* karty na białym */
+  --bs-border-color: #ffd1f0;      /* delikatne obramowania */
+  --bs-primary: #ff4da6;           /* słodki róż jako primary */
+  --bs-link-color: #e60073;        /* linki – magenta */
+  --bs-link-hover-color: #ff4da6;  /* hover jaśniejszy */
+  --bs-secondary-color: #7a3e6a;   /* tekst pomocniczy */
+}
+
+/* Candy – navbar i dropdowny w pastelach, bez "maski" */
+[data-bs-theme='candy'] .navbar {
+  background: linear-gradient(90deg, #ffd1f5, #ffe6ff, #ffd1f5);
+  --bs-navbar-color: #4a1340;
+  --bs-navbar-hover-color: #ff4da6;
+  --bs-navbar-brand-color: #4a1340;
+  --bs-navbar-brand-hover-color: #ff4da6;
+}
+[data-bs-theme='candy'] .dropdown-menu {
+  --bs-dropdown-bg: #fff5fb;
+  --bs-dropdown-color: #4a1340;
+  --bs-dropdown-link-color: #4a1340;
+  --bs-dropdown-link-hover-color: #4a1340;
+  --bs-dropdown-link-hover-bg: #ffe6f7;
+  --bs-dropdown-link-active-bg: #ffd6ef;
+  --bs-dropdown-border-color: #ffd1f0;
+}
+
+/* Candy – przyciski i badge bardziej cukierkowe */
+[data-bs-theme='candy'] .btn-primary {
+  --bs-btn-bg: #ff4da6; 
+  --bs-btn-border-color: #ff4da6;
+  --bs-btn-hover-bg: #ff1a8c;
+  --bs-btn-hover-border-color: #ff1a8c;
+  --bs-btn-active-bg: #e60073;
+  --bs-btn-active-border-color: #e60073;
+}
+[data-bs-theme='candy'] .text-bg-primary {
+  background-color: #ff4da6 !important;
+  color: #ffffff !important;
+}
+
+/* Candy – czytelne pola formularzy i pomocnicze teksty */
+[data-bs-theme='candy'] .form-control,
+[data-bs-theme='candy'] .form-select {
+  background-color: #ffffff;
+  color: #4a1340;
+  border-color: #ffd1f0;
+}
+[data-bs-theme='candy'] ::placeholder { color: #a56aa0; }
+
+/* Drobne ujednolicenia komponentów dla customowych motywów */
+[data-bs-theme='ocean'] .navbar,
+[data-bs-theme='forest'] .navbar,
+[data-bs-theme='candy'] .navbar {
+  --bs-navbar-color: var(--bs-body-color);
+  --bs-navbar-hover-color: var(--bs-link-color);
+  --bs-navbar-brand-color: var(--bs-body-color);
+}
+
+[data-bs-theme='ocean'] .link-body-emphasis,
+[data-bs-theme='forest'] .link-body-emphasis,
+[data-bs-theme='candy'] .link-body-emphasis,
+[data-bs-theme='light'] .link-body-emphasis {
+  color: var(--bs-link-color) !important;
+}
+
+[data-bs-theme='ocean'] .text-body-secondary,
+[data-bs-theme='forest'] .text-body-secondary,
+[data-bs-theme='candy'] .text-body-secondary,
+[data-bs-theme='light'] .text-body-secondary {
+  color: var(--bs-secondary-color) !important;
+}
+
+[data-bs-theme] .card { border-color: var(--bs-border-color); }
+[data-bs-theme] .btn-primary { --bs-btn-bg: var(--bs-primary); --bs-btn-border-color: var(--bs-primary); }

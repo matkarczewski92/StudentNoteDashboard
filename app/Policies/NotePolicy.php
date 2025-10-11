@@ -14,7 +14,7 @@ class NotePolicy
 
     public function view(User $user, Note $note): bool
     {
-        return $note->user_id === $user->id || in_array($user->role, ['admin','moderator'], true);
+        return true; // widoczne dla wszystkich zalogowanych
     }
 
     public function create(User $user): bool
@@ -24,12 +24,16 @@ class NotePolicy
 
     public function update(User $user, Note $note): bool
     {
-        return $note->user_id === $user->id || in_array($user->role, ['admin','moderator'], true);
+        // Autor może edytować w ciągu 1h; moder/admin zawsze
+        if (in_array($user->role, ['admin','moderator'], true)) return true;
+        return $note->user_id === $user->id && $note->created_at->addHour()->isFuture();
     }
 
     public function delete(User $user, Note $note): bool
     {
-        return $note->user_id === $user->id || $user->role === 'admin';
+        // Autor może usunąć w ciągu 1h; admin zawsze
+        if ($user->role === 'admin') return true;
+        return $note->user_id === $user->id && $note->created_at->addHour()->isFuture();
     }
 
     public function toggleHide(User $user, Note $note): bool

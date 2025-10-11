@@ -15,4 +15,16 @@ class Subject extends Model
     {
         return $this->belongsTo(Semester::class); // belongs to one semester
     }
+
+    public function inferredKind(): string
+    {
+        $name = mb_strtolower($this->name ?? '');
+        if (str_contains($name, 'ćwic') || str_contains($name, 'cwic')) {
+            return 'exercise';
+        }
+        if (str_contains($name, 'wykł') || str_contains($name, 'wykl') || str_contains($name, 'wyklad')) {
+            return 'lecture';
+        }
+        return 'lecture';
+    }
 }

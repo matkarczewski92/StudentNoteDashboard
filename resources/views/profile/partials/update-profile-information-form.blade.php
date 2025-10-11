@@ -29,6 +29,26 @@
                     @enderror
                 </div>
             </div>
+
+            <div class="row mb-3">
+                <label for="theme" class="col-md-4 col-form-label text-md-end">
+                    Motyw interfejsu
+                </label>
+                <div class="col-md-6">
+                    @php $theme = old('theme', $user->theme ?? 'dark'); @endphp
+                    <select id="theme" name="theme" class="form-select">
+                        <option value="dark" {{ $theme==='dark' ? 'selected' : '' }}>Ciemny (domyślny)</option>
+                        <option value="light" {{ $theme==='light' ? 'selected' : '' }}>Jasny</option>
+                        <option value="ocean" {{ $theme==='ocean' ? 'selected' : '' }}>Ocean</option>
+                        <option value="forest" {{ $theme==='forest' ? 'selected' : '' }}>Forest</option>
+                        <option value="candy" {{ $theme==='candy' ? 'selected' : '' }}>Candy</option>
+                    </select>
+                    @error('theme')
+                        <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                    @enderror
+                    <div class="form-text">Wybierz wygląd aplikacji. Zmiana zapisywana w profilu.</div>
+                </div>
+            </div>
             <div class="row mb-3">
                 <label for="album" class="col-md-4 col-form-label text-md-end">
                     Numer albumu

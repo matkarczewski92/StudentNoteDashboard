@@ -18,6 +18,7 @@ class ProfileUpdateRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'album' => ['required', 'string', 'max:20'],
+            'theme' => ['sometimes','required','string', Rule::in(['dark','light','ocean','forest','candy'])],
             'email' => [
                 'required',
                 'string',
