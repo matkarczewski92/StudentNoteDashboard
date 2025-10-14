@@ -1,4 +1,4 @@
-@extends('layouts.guest')
+﻿@extends('layouts.guest')
 
 @section('content')
 <div class="container">
@@ -40,7 +40,7 @@
 
 
                         <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">Hasło</label>
+                            <label for="password" class="col-md-4 col-form-label text-md-end">HasĹ‚o</label>
 
                             <div class="col-md-6">
                                 <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
@@ -67,7 +67,7 @@
 
                         <div class="row mb-0">
                             <div class="col-md-8 offset-md-4">
-                                <button type="submit" class="btn btn-primary">Zaloguj się</button>
+                                <button type="submit" class="btn btn-primary">Zaloguj się™</button>
 
                                 @if (Route::has('password.request'))
                                     <a class="btn btn-link" href="{{ route('password.request') }}">
@@ -76,7 +76,7 @@
                                 @endif
                                 @if (Route::has('register'))
                                     <span class="ms-3 text-body-secondary">Nie masz konta?
-                                        <a class="link-primary" href="{{ route('register') }}">Zarejestruj się</a>
+                                        <a class="link-primary" href="{{ route('register') }}">Zarejestruj się™</a>
                                     </span>
                                 @endif
                             </div>
@@ -88,3 +88,6 @@
     </div>
 </div>
 @endsection
+
+
+
