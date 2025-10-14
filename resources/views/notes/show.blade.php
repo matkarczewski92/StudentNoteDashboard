@@ -62,7 +62,10 @@
           <div class="small text-body-secondary mb-2">Załączniki:</div>
           <div class="d-flex flex-wrap gap-2">
             @foreach($note->attachments as $att)
-              @php $isImage = Str::startsWith($att->mime_type, 'image/'); @endphp
+              @php
+                $nameLower = Str::lower($att->original_name);
+                $isImage = Str::startsWith($att->mime_type, 'image/') || Str::endsWith($nameLower, ['.jpg','.jpeg','.png','.gif','.webp']);
+              @endphp
               @if($isImage)
                 <a href="{{ $att->url() }}" target="_blank"><img src="{{ $att->url() }}" class="img-thumbnail" style="max-height:120px" alt="{{ $att->original_name }}" title="{{ $att->original_name }}"></a>
               @else

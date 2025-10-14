@@ -14,20 +14,40 @@ class AttachmentController extends Controller
 
     private function respondFile(string $diskPath, string $downloadName, string $mime, bool $inline = false)
     {
-        $full = Storage::disk('public')->path($diskPath);
+        $fs = Storage::disk('public');
+        $full = $fs->path($diskPath);
         abort_unless(is_file($full), 404);
 
+        // Robust MIME detection
+        $mime = $mime ?: ($fs->mimeType($diskPath) ?: 'application/octet-stream');
+        if ($mime === 'application/octet-stream') {
+            $ext = strtolower(pathinfo($full, PATHINFO_EXTENSION));
+            $map = [
+                'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp',
+                'pdf' => 'application/pdf', 'doc' => 'application/msword', 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ];
+            if (isset($map[$ext])) $mime = $map[$ext];
+        }
+
+        $size = (int) $fs->size($diskPath);
         $headers = [
-            'Content-Type' => $mime ?: 'application/octet-stream',
+            'Content-Type' => $mime,
+            'Content-Length' => (string) $size,
             'Cache-Control' => 'private, max-age=86400',
+            'Accept-Ranges' => 'bytes',
         ];
 
-        if ($inline) {
-            // inline preview (images)
-            return response()->file($full, $headers + ['Content-Disposition' => 'inline; filename="' . $downloadName . '"']);
-        }
-        // force download for non-images to avoid client/plugins mangling the file
-        return response()->download($full, $downloadName, $headers);
+        // Stream to client (less memory, fewer host issues)
+        $stream = $fs->readStream($diskPath);
+        abort_unless(is_resource($stream), 404);
+
+        $disposition = ($inline ? 'inline' : 'attachment') . '; filename="' . $downloadName . '"';
+        $headers['Content-Disposition'] = $disposition;
+
+        return response()->stream(function () use ($stream) {
+            fpassthru($stream);
+            if (is_resource($stream)) fclose($stream);
+        }, 200, $headers);
     }
 
     public function note(NoteAttachment $att)
