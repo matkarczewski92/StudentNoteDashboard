@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -21,7 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'album',      // ← DODAJ
+        'album',      // â† DODAJ
         'password',
     ];
 
@@ -58,7 +58,12 @@ class User extends Authenticatable
 
     public function hasAnyRole(array $roles): bool
     {
-        // podmień na swoją logikę (np. spatie/permission -> $this->hasAnyRole($roles))
+        // podmieĹ„ na swojÄ… logikÄ™ (np. spatie/permission -> $this->hasAnyRole($roles))
         return in_array($this->role ?? 'user', $roles, true);
     }
 }
+
+
+
+
+
