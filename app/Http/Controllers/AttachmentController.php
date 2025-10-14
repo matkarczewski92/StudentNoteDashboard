@@ -12,6 +12,14 @@ class AttachmentController extends Controller
         $this->middleware('auth');
     }
 
+    private function isImage(?string $mime, string $filename): bool
+    {
+        $m = strtolower($mime ?? '');
+        if (str_starts_with($m, 'image/')) return true;
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        return in_array($ext, ['jpg','jpeg','png','gif','webp','bmp'], true);
+    }
+
     private function respondFile(string $diskPath, string $downloadName, string $mime, bool $inline = false)
     {
         $fs = Storage::disk('public');
@@ -32,10 +40,9 @@ class AttachmentController extends Controller
         $headers = [ 'Cache-Control' => 'private, max-age=86400' ];
 
         if ($inline) {
-            // Let Symfony BinaryFileResponse handle ranges/length
-            return response()->file($full, $headers + [
+            // For images, let Storage set headers and stream inline without Content-Disposition
+            return Storage::disk('public')->response($diskPath, null, $headers + [
                 'Content-Type' => $mime,
-                'Content-Disposition' => 'inline; filename="' . $downloadName . '"',
             ]);
         }
         return response()->download($full, $downloadName, $headers + [ 'Content-Type' => $mime ]);
@@ -43,8 +50,9 @@ class AttachmentController extends Controller
 
     public function note(NoteAttachment $att)
     {
-        $mime = $att->mime_type ?: 'application/octet-stream';
-        $isImage = str_starts_with(strtolower($mime), 'image/');
+        $fs = Storage::disk('public');
+        $mime = $att->mime_type ?: ($fs->mimeType($att->path) ?: 'application/octet-stream');
+        $isImage = $this->isImage($mime, $att->original_name);
         return $this->respondFile($att->path, $att->original_name, $mime, $isImage);
     }
 
@@ -57,8 +65,9 @@ class AttachmentController extends Controller
                 || $user->groups()->whereIn('groups.id', $mail->groups->pluck('id'))->exists());
             abort_unless($allowed, 403);
         }
-        $mime = $att->mime_type ?: 'application/octet-stream';
-        $isImage = str_starts_with(strtolower($mime), 'image/');
+        $fs = Storage::disk('public');
+        $mime = $att->mime_type ?: ($fs->mimeType($att->path) ?: 'application/octet-stream');
+        $isImage = $this->isImage($mime, $att->original_name);
         return $this->respondFile($att->path, $att->original_name, $mime, $isImage);
     }
 }

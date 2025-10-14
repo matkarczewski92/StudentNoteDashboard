@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Admin;
 
@@ -38,7 +38,7 @@ class UserAdminController extends Controller
     public function edit(User $user)
     {
         $groups = Group::orderBy('name')->get();
-        // użyj załadowanej kolekcji, aby uniknąć "Column 'id' is ambiguous"
+        // uĹĽyj zaĹ‚adowanej kolekcji, aby uniknÄ…Ä‡ "Column 'id' is ambiguous"
         $userGroupIds = $user->groups->pluck('id')->all();
         return view('admin.users.edit', compact('user','groups','userGroupIds'));
     }
@@ -60,14 +60,14 @@ class UserAdminController extends Controller
             'role' => $data['role'],
         ]);
         $user->groups()->sync($request->input('groups', []));
-        return redirect()->route('admin.users.edit', $user)->with('ok','Zapisano zmiany użytkownika.');
+        return redirect()->route('admin.users.edit', $user)->with('ok','Zapisano zmiany uĹĽytkownika.');
     }
 
     public function resetPassword(User $user)
     {
         $temp = Str::password(10);
         $user->update(['password' => bcrypt($temp)]);
-        return back()->with('ok', "Tymczasowe hasło dla {$user->name}: $temp");
+        return back()->with('ok', "Tymczasowe hasĹ‚o dla {$user->name}: $temp");
     }
 
     public function bulkAddToGroup(Request $request)
@@ -100,27 +100,27 @@ class UserAdminController extends Controller
             $target->users()->syncWithoutDetaching($ids);
         }
 
-        return back()->with('ok', 'Dodano użytkowników do wybranej grupy.');
+        return back()->with('ok', 'Dodano uĹĽytkownikĂłw do wybranej grupy.');
     }
 
     public function destroy(Request $request, User $user)
     {
-        // Nie pozwól usunąć samego siebie
+        // Nie pozwĂłl usunÄ…Ä‡ samego siebie
         if ($request->user()->id === $user->id) {
-            return back()->withErrors(['user' => 'Nie możesz usunąć własnego konta.']);
+            return back()->withErrors(['user' => 'Nie moĹĽesz usunÄ…Ä‡ wĹ‚asnego konta.']);
         }
 
-        // Kont administratora nie można usuwać
+        // Kont administratora nie moĹĽna usuwaÄ‡
         if (($user->role ?? 'user') === 'admin') {
-            return back()->withErrors(['user' => 'Nie można usunąć konta administratora.']);
+            return back()->withErrors(['user' => 'Nie moĹĽna usunÄ…Ä‡ konta administratora.']);
         }
 
-        // Ewentualnie: zabezpieczenie na ostatniego admina — pomijamy jeśli nie wymagane.
+        // Ewentualnie: zabezpieczenie na ostatniego admina â€” pomijamy jeĹ›li nie wymagane.
         // if ($user->role === 'admin' && User::where('role','admin')->where('id','!=',$user->id)->count() === 0) {
-        //     return back()->withErrors(['user' => 'Nie można usunąć ostatniego administratora.']);
+        //     return back()->withErrors(['user' => 'Nie moĹĽna usunÄ…Ä‡ ostatniego administratora.']);
         // }
 
         $user->delete();
-        return redirect()->route('admin.users.index')->with('ok', 'Użytkownik został usunięty.');
+        return redirect()->route('admin.users.index')->with('ok', 'UĹĽytkownik zostaĹ‚ usuniÄ™ty.');
     }
 }

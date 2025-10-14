@@ -12,4 +12,5 @@ class NoteAttachment extends Model
     public function note(): BelongsTo { return $this->belongsTo(Note::class); }
 
     public function url(): string { return route('attachments.notes.show', $this); }
+    public function publicUrl(): string { return asset('storage/' . $this->path); }
 }
