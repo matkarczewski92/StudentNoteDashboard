@@ -75,6 +75,7 @@
         </div>
       </div>
     </div>
+    @if (Route::has('lecturers.index'))
     <div class="col-md-4">
       <div class="card h-100">
         <div class="card-body">
@@ -93,6 +94,7 @@
         </div>
       </div>
     </div>
+    @endif
   </div>
 
   @can('admin')
@@ -115,4 +117,3 @@
   @endcan
 </div>
 @endsection
-
