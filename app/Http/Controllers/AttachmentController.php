@@ -29,25 +29,16 @@ class AttachmentController extends Controller
             if (isset($map[$ext])) $mime = $map[$ext];
         }
 
-        $size = (int) $fs->size($diskPath);
-        $headers = [
-            'Content-Type' => $mime,
-            'Content-Length' => (string) $size,
-            'Cache-Control' => 'private, max-age=86400',
-            'Accept-Ranges' => 'bytes',
-        ];
+        $headers = [ 'Cache-Control' => 'private, max-age=86400' ];
 
-        // Stream to client (less memory, fewer host issues)
-        $stream = $fs->readStream($diskPath);
-        abort_unless(is_resource($stream), 404);
-
-        $disposition = ($inline ? 'inline' : 'attachment') . '; filename="' . $downloadName . '"';
-        $headers['Content-Disposition'] = $disposition;
-
-        return response()->stream(function () use ($stream) {
-            fpassthru($stream);
-            if (is_resource($stream)) fclose($stream);
-        }, 200, $headers);
+        if ($inline) {
+            // Let Symfony BinaryFileResponse handle ranges/length
+            return response()->file($full, $headers + [
+                'Content-Type' => $mime,
+                'Content-Disposition' => 'inline; filename="' . $downloadName . '"',
+            ]);
+        }
+        return response()->download($full, $downloadName, $headers + [ 'Content-Type' => $mime ]);
     }
 
     public function note(NoteAttachment $att)
