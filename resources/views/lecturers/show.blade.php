@@ -48,7 +48,7 @@
               $isImage = Str::startsWith($att->mime_type, 'image/') || Str::endsWith($nameLower, ['.jpg','.jpeg','.png','.gif','.webp']);
             @endphp
             @if($isImage)
-              <a href="{{ $att->url() }}" target="_blank"><img src="{{ $att->url() }}" class="img-thumbnail" style="max-height:120px" alt="{{ $att->original_name }}" title="{{ $att->original_name }}"></a>
+              <a href="{{ $att->publicUrl() }}" target="_blank"><img src="{{ $att->publicUrl() }}" class="img-thumbnail" style="max-height:120px" alt="{{ $att->original_name }}" title="{{ $att->original_name }}"></a>
             @else
               <a href="{{ $att->url() }}" class="btn btn-outline-secondary btn-sm" target="_blank">
                 <i class="bi bi-paperclip"></i> {{ $att->original_name }} ({{ number_format($att->size/1024, 0) }} KB)
