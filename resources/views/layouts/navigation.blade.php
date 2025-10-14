@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-md navbar-dark shadow-sm">
-    <div class="container">
+    <div class="container-fluid">
         <a class="navbar-brand" href="{{ route('dashboard') }}">
             StudentNoteDashboard <sup>beta v0.1</sup>
         </a>
@@ -17,6 +17,7 @@
             <a class="nav-link me-3" href="{{ route('dashboard') }}"><i class="bi bi-house"></i> Home</a>
             <a class="nav-link me-3" href="{{ route('schedule.index') }}"><i class="bi bi-calendar-date"></i> Harmonogram</a>
             <a class="nav-link me-3" href="{{ route('notes.index') }}"><i class="bi bi-journal-check"></i> Notatki</a>
+            <a class="nav-link me-3" href="{{ route('lecturers.index') }}"><i class="bi bi-envelope-paper"></i> Od wykładowców</a>
             <a class="nav-link me-3" href="{{ route('questions.index') }}"><i class="bi bi-cup-hot"></i> Tablica</a>
             <a class="nav-link me-3" href="{{ route('polls.index') }}"><i class="bi bi-check2-square"></i> Głosowania</a>
             <a class="nav-link me-3" href="{{ route('attendance.index') }}"><i class="bi bi-people"></i> Lista obecności</a>

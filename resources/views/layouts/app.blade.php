@@ -18,6 +18,12 @@
     @livewireStyles
     @vite('resources/js/app.js')
     @stack('styles')
+    <style>
+      body { min-height: 100vh; display: flex; flex-direction: column; }
+      #app { flex: 1 0 auto; }
+      footer { flex-shrink: 0; }
+    </style>
+    
 </head>
 <body>
     <div id="app">
@@ -28,9 +34,10 @@
         </main>
     </div>
     
-    <footer class="mt-5">
+    <footer class="mt-5 py-3 border-top">
         <p class="text-center text-muted small mb-0">
-            © Mateusz Karczewski dla studentów kierunku Psychologia Uniwersytetu WSB Merito w Gdańsku
+            &copy; Mateusz Karczewski dla studentów kierunku Psychologia Uniwersytetu WSB Merito w Gdańsku ·
+            <a href="https://github.com/matkarczewski92/StudentNoteDashboard" target="_blank" rel="noopener">Link do repozytorium GitHub</a>
         </p>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
@@ -39,3 +46,4 @@
     @livewireScripts
 </body>
 </html>
+

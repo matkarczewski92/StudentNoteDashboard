@@ -12,11 +12,12 @@ class AuthServiceProvider extends ServiceProvider
 
  
     protected $policies = [
-    \App\Models\Event::class => \App\Policies\EventPolicy::class,
-    \App\Models\Question::class => \App\Policies\QuestionPolicy::class,
-    \App\Models\Answer::class   => \App\Policies\AnswerPolicy::class,
-    \App\Models\Poll::class     => \App\Policies\PollPolicy::class,
-    \App\Models\Note::class     => \App\Policies\NotePolicy::class,
+    \App\Models\Event::class         => \App\Policies\EventPolicy::class,
+    \App\Models\Question::class      => \App\Policies\QuestionPolicy::class,
+    \App\Models\Answer::class        => \App\Policies\AnswerPolicy::class,
+    \App\Models\Poll::class          => \App\Policies\PollPolicy::class,
+    \App\Models\Note::class          => \App\Policies\NotePolicy::class,
+    \App\Models\LecturerMail::class  => \App\Policies\LecturerMailPolicy::class,
     ];
 
     /**

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Question, Event, Note};
+use App\Models\{Question, Event, Note, LecturerMail};
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -13,8 +13,8 @@ class DashboardController extends Controller
         $upcomingEvents = Event::whereBetween('deadline', [now(), now()->addDays(14)])
             ->orderBy('deadline')->take(6)->get();
         $latestNotes = Note::with(['user','subject'])->latest()->take(5)->get();
+        $latestLecturerMails = LecturerMail::with(['user','subject'])->latest()->take(5)->get();
 
-        return view('dashboard', compact('latestQuestions','upcomingEvents','latestNotes'));
+        return view('dashboard', compact('latestQuestions','upcomingEvents','latestNotes','latestLecturerMails'));
     }
 }
-

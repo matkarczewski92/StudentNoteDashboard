@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="container px-3 px-md-4">
@@ -11,7 +11,7 @@
             @forelse($latestQuestions as $q)
               <a class="text-decoration-none" href="{{ route('questions.show', $q) }}">
                 <div class="small">{{ $q->title }}</div>
-                <div class="small text-body-secondary">{{ $q->user->name ?? '—' }} • {{ $q->created_at->diffForHumans() }}</div>
+                <div class="small text-body-secondary">{{ $q->user->name ?? '-' }} • {{ $q->created_at->diffForHumans() }}</div>
               </a>
             @empty
               <div class="text-body-secondary small">Brak pytań.</div>
@@ -47,13 +47,49 @@
             @forelse($latestNotes as $n)
               <a class="text-decoration-none" href="{{ route('notes.show', $n) }}">
                 <div class="small">{{ $n->title }}</div>
-                <div class="small text-body-secondary">{{ $n->subject->name ?? '—' }} • {{ $n->created_at->diffForHumans() }}</div>
+                <div class="small text-body-secondary">{{ $n->subject->name ?? '-' }} • {{ $n->created_at->diffForHumans() }}</div>
               </a>
             @empty
               <div class="text-body-secondary small">Brak notatek.</div>
             @endforelse
           </div>
           <div class="mt-2 text-end"><a class="btn btn-outline-secondary btn-sm" href="{{ route('notes.index') }}">Zobacz wszystkie</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-1">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Konto grupowe Gmail</h5>
+          <div class="small">
+            Login: <code>psjn2025a@gmail.com</code><br>
+            Hasło: <code>tajnehaslo2025</code>
+          </div>
+          <div class="text-body-secondary small mt-2">Uwaga: nie zmieniaj ustawień ani hasła konta.</div>
+          <div class="mt-2 text-end">
+            <a class="btn btn-outline-primary btn-sm" href="https://mail.google.com" target="_blank" rel="noopener">Otwórz Gmail</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Od wykładowców</h5>
+          <div class="vstack gap-2">
+            @forelse($latestLecturerMails as $m)
+              <a class="text-decoration-none" href="{{ route('lecturers.show', $m) }}">
+                <div class="small">{{ $m->title }}</div>
+                <div class="small text-body-secondary">{{ $m->subject->name ?? '-' }} • {{ $m->created_at->diffForHumans() }}</div>
+              </a>
+            @empty
+              <div class="text-body-secondary small">Brak wpisów.</div>
+            @endforelse
+          </div>
+          <div class="mt-2 text-end"><a class="btn btn-outline-secondary btn-sm" href="{{ route('lecturers.index') }}">Zobacz wszystkie</a></div>
         </div>
       </div>
     </div>
@@ -79,3 +115,4 @@
   @endcan
 </div>
 @endsection
+
