@@ -11,6 +11,5 @@ class LecturerMailAttachment extends Model
 
     public function mail(): BelongsTo { return $this->belongsTo(LecturerMail::class, 'lecturer_mail_id'); }
 
-    public function url(): string { return asset('storage/' . $this->path); }
+    public function url(): string { return route('attachments.lecturers.show', $this); }
 }
-
