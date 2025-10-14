@@ -75,8 +75,23 @@ class LecturerMailController extends Controller
             'body'       => ['nullable','string'],
             'group_ids'   => ['array'],
             'group_ids.*' => ['integer','exists:groups,id'],
-            'attachments.*' => ['nullable','file','max:10240','mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,txt'],
+            'attachments.*' => ['nullable','file','max:51200','mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,txt'],
         ]);
+
+        // Per-type size limits: images up to 10MB, others up to 50MB
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                if (!$file) continue;
+                $mime = $file->getMimeType();
+                $size = (int) $file->getSize();
+                if (str_starts_with($mime, 'image/') && $size > 10 * 1024 * 1024) {
+                    return back()->withErrors(['attachments' => 'Zdjęcia mogą mieć maks. 10 MB.'])->withInput();
+                }
+                if (!str_starts_with($mime, 'image/') && $size > 50 * 1024 * 1024) {
+                    return back()->withErrors(['attachments' => 'Pliki mogą mieć maks. 50 MB.'])->withInput();
+                }
+            }
+        }
 
         $mail = LecturerMail::create([
             'user_id'    => Auth::id(),
@@ -118,10 +133,24 @@ class LecturerMailController extends Controller
             'body'       => ['nullable','string'],
             'group_ids'   => ['array'],
             'group_ids.*' => ['integer','exists:groups,id'],
-            'attachments.*' => ['nullable','file','max:10240','mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,txt'],
+            'attachments.*' => ['nullable','file','max:51200','mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,txt'],
             'remove_attachments'   => ['array'],
             'remove_attachments.*' => ['integer','exists:lecturer_mail_attachments,id'],
         ]);
+
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                if (!$file) continue;
+                $mime = $file->getMimeType();
+                $size = (int) $file->getSize();
+                if (str_starts_with($mime, 'image/') && $size > 10 * 1024 * 1024) {
+                    return back()->withErrors(['attachments' => 'Zdjęcia mogą mieć maks. 10 MB.'])->withInput();
+                }
+                if (!str_starts_with($mime, 'image/') && $size > 50 * 1024 * 1024) {
+                    return back()->withErrors(['attachments' => 'Pliki mogą mieć maks. 50 MB.'])->withInput();
+                }
+            }
+        }
 
         $mail->update([
             'title'      => $data['title'],
