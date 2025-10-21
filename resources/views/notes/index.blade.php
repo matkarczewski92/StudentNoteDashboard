@@ -21,6 +21,7 @@
   @php
     $groupsList = $groups ?? collect();
     $selectedGroups = collect($selectedGroupIds ?? []);
+    $userGroupIdsList = collect($userGroupIds ?? []);
     $showGroupFilter = ($selectedSubjectKind ?? null) === 'exercise' && $groupsList->count() > 0;
     $subjectColClass = $showGroupFilter ? 'col-md-4' : 'col-md-8';
     $paginationParams = [
@@ -56,14 +57,23 @@
             <label class="form-label d-block">Grupy</label>
             <div id="groupFilter" class="vstack gap-1" data-total="{{ $groupsList->count() }}">
               @foreach($groupsList as $group)
-                @php $isChecked = $selectedGroups->isEmpty() || $selectedGroups->contains((int) $group->id); @endphp
+                @php
+                  $groupId = (int) $group->id;
+                  $isChecked = $selectedGroups->contains($groupId);
+                  $isMine = $userGroupIdsList->contains($groupId);
+                @endphp
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="group-filter-{{ $group->id }}" value="{{ $group->id }}" {{ $isChecked ? 'checked' : '' }}>
-                  <label class="form-check-label" for="group-filter-{{ $group->id }}">{{ $group->name }}</label>
+                  <label class="form-check-label" for="group-filter-{{ $group->id }}">
+                    {{ $group->name }}
+                    @if($isMine)
+                      <span class="small text-body-secondary ms-1">(moja grupa)</span>
+                    @endif
+                  </label>
                 </div>
               @endforeach
             </div>
-            <div class="form-text">Domyslnie pokazujemy notatki ze wszystkich grup. Odznacz, aby zawęzić wyniki.</div>
+            <div class="form-text">Pozostaw pola niezaznaczone, aby wyświetlić notatki ze wszystkich grup.</div>
           </div>
         @endif
       </div>
@@ -203,8 +213,8 @@
       const params = new URLSearchParams();
       if (sid) params.set('semester_id', sid);
       if (sub) params.set('subject_id', sub);
-      const allSelected = total > 0 && selectedValues.length === total;
-      if (selectedValues.length && !allSelected) {
+      const treatAsAll = selectedValues.length === 0 || (total > 0 && selectedValues.length === total);
+      if (!treatAsAll) {
         selectedValues.forEach(val => params.append('group_ids[]', val));
       }
       const qs = params.toString();

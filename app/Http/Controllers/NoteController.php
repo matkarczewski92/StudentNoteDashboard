@@ -21,6 +21,12 @@ class NoteController extends Controller
 
         $groups = collect();
         $selectedGroupIds = [];
+        $userGroupIds = [];
+        if ($request->user()) {
+            $userGroupIds = $request->user()->groups()->pluck('groups.id')
+                ->map(static fn ($id) => (int) $id)
+                ->all();
+        }
         if ($selectedSubject && $selectedSubjectKind === 'exercise') {
             $groups = Group::orderBy('name')->get();
             $requestedGroupIds = $request->query('group_ids', []);
@@ -61,6 +67,7 @@ class NoteController extends Controller
             'selectedSubjectKind' => $selectedSubjectKind,
             'groups' => $groups,
             'selectedGroupIds' => $selectedGroupIds,
+            'userGroupIds' => $userGroupIds,
             'notes' => $notes,
         ]);
     }
