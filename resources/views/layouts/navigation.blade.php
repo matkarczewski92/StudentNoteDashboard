@@ -18,7 +18,7 @@
             <a class="nav-link me-3" href="{{ route('schedule.index') }}"><i class="bi bi-calendar-date"></i> Harmonogram</a>
             <a class="nav-link me-3" href="{{ route('notes.index') }}"><i class="bi bi-journal-check"></i> Notatki</a>
             @if (Route::has('lecturers.index'))
-            <a class="nav-link me-3" href="{{ route('lecturers.index') }}"><i class="bi bi-envelope-paper"></i> Od wykładowców</a>
+            <a class="nav-link me-3" href="{{ route('lecturers.index') }}"><i class="bi bi-envelope-paper"></i> Biblioteka</a>
             @endif
             <a class="nav-link me-3" href="{{ route('questions.index') }}"><i class="bi bi-cup-hot"></i> Tablica</a>
             <a class="nav-link me-3" href="{{ route('polls.index') }}"><i class="bi bi-check2-square"></i> Głosowania</a>

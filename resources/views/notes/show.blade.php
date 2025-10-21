@@ -82,56 +82,63 @@
 
   {{-- Edycja (tylko dla autora <1h lub moder/admin) --}}
   @can('update', $note)
-  <div class="card mb-4">
-    <div class="card-body">
-      <form method="post" action="{{ route('notes.update', $note) }}" enctype="multipart/form-data" class="vstack gap-3">
-        @csrf @method('put')
-        <div class="row g-3">
-          <div class="col-md-8">
-            <label class="form-label">Tytuł</label>
-            <input name="title" class="form-control" value="{{ old('title', $note->title) }}" required>
+  @php $noteEditOpen = old('title') !== null; @endphp
+  <button class="btn btn-outline-primary w-100 mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#noteEditForm" aria-expanded="{{ $noteEditOpen ? 'true' : 'false' }}" aria-controls="noteEditForm">
+    Edytuj
+  </button>
+  <div id="noteEditForm" class="collapse {{ $noteEditOpen ? 'show' : '' }}">
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 class="h5 fw-bold mb-3">Formularz edycji</h2>
+        <form method="post" action="{{ route('notes.update', $note) }}" enctype="multipart/form-data" class="vstack gap-3">
+          @csrf @method('put')
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label">Tytul</label>
+              <input name="title" class="form-control" value="{{ old('title', $note->title) }}" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Data zajec</label>
+              <input name="lecture_date" type="date" class="form-control" value="{{ optional($note->lecture_date)->format('Y-m-d') }}">
+            </div>
           </div>
-          <div class="col-md-4">
-            <label class="form-label">Data zajęć</label>
-            <input name="lecture_date" type="date" class="form-control" value="{{ optional($note->lecture_date)->format('Y-m-d') }}">
+          <div>
+            <label class="form-label">Dot. przedmiotu</label>
+            <div class="form-control bg-body-secondary">{{ $note->subject->name ?? '---' }}</div>
           </div>
-        </div>
-        <div>
-          <label class="form-label">Dot. przedmiotu</label>
-          <div class="form-control bg-body-secondary">{{ $note->subject->name ?? '—' }}</div>
-        </div>
-        <div>
-          <label class="form-label">Treść</label>
-          <div class="d-flex gap-2 mb-2">
-            <button class="btn btn-sm btn-outline-secondary js-bold" type="button"><i class="bi bi-type-bold"></i></button>
-            <button class="btn btn-sm btn-outline-secondary js-italic" type="button"><i class="bi bi-type-italic"></i></button>
-            <button class="btn btn-sm btn-outline-secondary js-ul" type="button"><i class="bi bi-list-ul"></i></button>
-            <button class="btn btn-sm btn-outline-secondary js-link" type="button"><i class="bi bi-link-45deg"></i></button>
+          <div>
+            <label class="form-label">Tresc</label>
+            <div class="d-flex gap-2 mb-2">
+              <button class="btn btn-sm btn-outline-secondary js-bold" type="button"><i class="bi bi-type-bold"></i></button>
+              <button class="btn btn-sm btn-outline-secondary js-italic" type="button"><i class="bi bi-type-italic"></i></button>
+              <button class="btn btn-sm btn-outline-secondary js-ul" type="button"><i class="bi bi-list-ul"></i></button>
+              <button class="btn btn-sm btn-outline-secondary js-link" type="button"><i class="bi bi-link-45deg"></i></button>
+            </div>
+            <div id="editor" contenteditable="true" class="form-control" style="min-height:140px">{!! old('body', $note->body) !!}</div>
+            <input type="hidden" name="body" id="editorHidden" value="{{ old('body', $note->body) }}">
           </div>
-          <div id="editor" contenteditable="true" class="form-control" style="min-height:140px">{!! old('body', $note->body) !!}</div>
-          <input type="hidden" name="body" id="editorHidden" value="{{ old('body', $note->body) }}">
-        </div>
-        <div>
-          <label class="form-label">Nowe załączniki</label>
-          <input type="file" name="attachments[]" class="form-control" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt">
-        </div>
-        @if($note->attachments->count())
-        <div>
-          <label class="form-label">Usuń wybrane załączniki</label>
-          <div class="d-flex flex-wrap gap-2">
-            @foreach($note->attachments as $att)
-              <label class="form-check-label border rounded p-2">
-                <input type="checkbox" class="form-check-input me-2" name="remove_attachments[]" value="{{ $att->id }}">
-                {{ $att->original_name }}
-              </label>
-            @endforeach
+          <div>
+            <label class="form-label">Nowe zalaczniki</label>
+            <input type="file" name="attachments[]" class="form-control" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt">
           </div>
-        </div>
-        @endif
-        <div class="text-end">
-          <button class="btn btn-primary btn-sm">Zapisz</button>
-        </div>
-      </form>
+          @if($note->attachments->count())
+          <div>
+            <label class="form-label">Usun wybrane zalaczniki</label>
+            <div class="d-flex flex-wrap gap-2">
+              @foreach($note->attachments as $att)
+                <label class="form-check-label border rounded p-2">
+                  <input type="checkbox" class="form-check-input me-2" name="remove_attachments[]" value="{{ $att->id }}">
+                  {{ $att->original_name }}
+                </label>
+              @endforeach
+            </div>
+          </div>
+          @endif
+          <div class="text-end">
+            <button class="btn btn-primary btn-sm">Zapisz</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
   @endcan

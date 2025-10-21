@@ -17,7 +17,20 @@
     </div>
   @endif
 
-  {{-- Filtry: Semestr i Przedmiot --}}
+  {{-- Filtry: Semestr, Przedmiot i opcjonalnie Grupy --}}
+  @php
+    $groupsList = $groups ?? collect();
+    $selectedGroups = collect($selectedGroupIds ?? []);
+    $showGroupFilter = ($selectedSubjectKind ?? null) === 'exercise' && $groupsList->count() > 0;
+    $subjectColClass = $showGroupFilter ? 'col-md-4' : 'col-md-8';
+    $paginationParams = [
+      'semester_id' => $selectedSemesterId,
+      'subject_id'  => $selectedSubjectId,
+    ];
+    if (!empty($selectedGroupIds)) {
+      $paginationParams['group_ids'] = $selectedGroupIds;
+    }
+  @endphp
   <div class="card mb-3">
     <div class="card-body">
       <div class="row g-3">
@@ -29,7 +42,7 @@
             @endforeach
           </select>
         </div>
-        <div class="col-md-8">
+        <div class="{{ $subjectColClass }}">
           <label class="form-label">Przedmiot</label>
           <select id="subjectSelect" class="form-select">
             <option value="">— Wybierz przedmiot —</option>
@@ -38,6 +51,21 @@
             @endforeach
           </select>
         </div>
+        @if($showGroupFilter)
+          <div class="col-md-4">
+            <label class="form-label d-block">Grupy</label>
+            <div id="groupFilter" class="vstack gap-1" data-total="{{ $groupsList->count() }}">
+              @foreach($groupsList as $group)
+                @php $isChecked = $selectedGroups->isEmpty() || $selectedGroups->contains((int) $group->id); @endphp
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="group-filter-{{ $group->id }}" value="{{ $group->id }}" {{ $isChecked ? 'checked' : '' }}>
+                  <label class="form-check-label" for="group-filter-{{ $group->id }}">{{ $group->name }}</label>
+                </div>
+              @endforeach
+            </div>
+            <div class="form-text">Domyslnie pokazujemy notatki ze wszystkich grup. Odznacz, aby zawęzić wyniki.</div>
+          </div>
+        @endif
       </div>
     </div>
   </div>
@@ -126,7 +154,7 @@
         @include('notes._card', ['note' => $note])
       @endforeach
     </div>
-    <div class="mt-3">{{ $notes->appends(['semester_id'=>$selectedSemesterId,'subject_id'=>$selectedSubjectId])->links() }}</div>
+    <div class="mt-3">{{ $notes->appends($paginationParams)->links() }}</div>
   @else
     <div class="text-body-secondary">Brak notatek do wyświetlenia.</div>
   @endif
@@ -136,8 +164,10 @@
 @push('scripts')
 <script>
   // przełączanie selectów
+  const notesIndexUrl = "{{ route('notes.index') }}";
   const semSel = document.getElementById('semesterSelect');
   const subSel = document.getElementById('subjectSelect');
+  const groupFilter = document.getElementById('groupFilter');
   if (semSel) semSel.addEventListener('change', async (e) => {
     const sid = e.target.value;
     try {
@@ -149,14 +179,39 @@
         const opt = document.createElement('option');
         opt.value = s.id; opt.textContent = s.name; subSel.appendChild(opt);
       });
-      window.location = `{{ route('notes.index') }}?semester_id=${sid}`;
+      const params = new URLSearchParams();
+      if (sid) params.set('semester_id', sid);
+      const qs = params.toString();
+      window.location = `${notesIndexUrl}${qs ? `?${qs}` : ''}`;
     } catch(err) { console.error(err); }
   });
   if (subSel) subSel.addEventListener('change', (e) => {
     const sid = semSel.value, sub = e.target.value;
-    if (sub) window.location = `{{ route('notes.index') }}?semester_id=${sid}&subject_id=${sub}`;
-    else window.location = `{{ route('notes.index') }}?semester_id=${sid}`;
+    const params = new URLSearchParams();
+    if (sid) params.set('semester_id', sid);
+    if (sub) params.set('subject_id', sub);
+    const qs = params.toString();
+    window.location = `${notesIndexUrl}${qs ? `?${qs}` : ''}`;
   });
+  if (groupFilter) {
+    const total = parseInt(groupFilter.dataset.total ?? '0', 10);
+    const checkboxes = Array.from(groupFilter.querySelectorAll('input[type="checkbox"]'));
+    const handleGroupChange = () => {
+      const sid = semSel?.value ?? '';
+      const sub = subSel?.value ?? '';
+      const selectedValues = checkboxes.filter(cb => cb.checked).map(cb => cb.value);
+      const params = new URLSearchParams();
+      if (sid) params.set('semester_id', sid);
+      if (sub) params.set('subject_id', sub);
+      const allSelected = total > 0 && selectedValues.length === total;
+      if (selectedValues.length && !allSelected) {
+        selectedValues.forEach(val => params.append('group_ids[]', val));
+      }
+      const qs = params.toString();
+      window.location = `${notesIndexUrl}${qs ? `?${qs}` : ''}`;
+    };
+    checkboxes.forEach(cb => cb.addEventListener('change', handleGroupChange));
+  }
 
   // prosty toolbar edytora
   (function(){

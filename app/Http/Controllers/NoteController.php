@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Note, NoteAttachment, NoteVote, NoteComment, Semester, Subject};
+use App\Models\{Note, NoteAttachment, NoteVote, NoteComment, Semester, Subject, Group};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -16,12 +16,38 @@ class NoteController extends Controller
         $selectedSemesterId = (int) $request->query('semester_id', optional($semesters->first())->id);
         $subjects = Subject::where('semester_id', $selectedSemesterId)->orderBy('name')->get();
         $selectedSubjectId = (int) $request->query('subject_id', 0);
+        $selectedSubject = $subjects->firstWhere('id', $selectedSubjectId);
+        $selectedSubjectKind = $selectedSubject?->inferredKind();
+
+        $groups = collect();
+        $selectedGroupIds = [];
+        if ($selectedSubject && $selectedSubjectKind === 'exercise') {
+            $groups = Group::orderBy('name')->get();
+            $requestedGroupIds = $request->query('group_ids', []);
+            if (!is_array($requestedGroupIds)) {
+                $requestedGroupIds = [$requestedGroupIds];
+            }
+            $selectedGroupIds = collect($requestedGroupIds)
+                ->map(static fn ($id) => (int) $id)
+                ->filter(static fn ($id) => $id > 0)
+                ->unique()
+                ->values()
+                ->all();
+        }
 
         $notes = collect();
         if ($selectedSubjectId) {
-            $notes = Note::with(['user.groups','subject'])
+            $notesQuery = Note::with(['user.groups','subject'])
                 ->where('subject_id', $selectedSubjectId)
-                ->where('is_hidden', false)
+                ->where('is_hidden', false);
+
+            if ($selectedSubjectKind === 'exercise' && !empty($selectedGroupIds)) {
+                $notesQuery->whereHas('user.groups', function ($q) use ($selectedGroupIds) {
+                    $q->whereIn('groups.id', $selectedGroupIds);
+                });
+            }
+
+            $notes = $notesQuery
                 ->orderByDesc('lecture_date')
                 ->orderByDesc('created_at')
                 ->paginate(20);
@@ -32,6 +58,9 @@ class NoteController extends Controller
             'subjects'  => $subjects,
             'selectedSemesterId' => $selectedSemesterId,
             'selectedSubjectId'  => $selectedSubjectId,
+            'selectedSubjectKind' => $selectedSubjectKind,
+            'groups' => $groups,
+            'selectedGroupIds' => $selectedGroupIds,
             'notes' => $notes,
         ]);
     }

@@ -99,21 +99,31 @@
 
   {{-- KARTA: Edycja pytania (pełna szerokość, jedno pole) --}}
   @can('update', $question)
-    @if(auth()->id() === $question->user_id && $question->created_at->addMinutes(30)->isFuture())
-      <div class="card mb-4">
-        <div class="card-body">
-          <form method="post" action="{{ route('questions.update', $question) }}">
-            @csrf @method('put')
-            <label class="form-label small text-body-secondary">Edytuj pytanie (dostępne 30 min od dodania)</label>
-            <textarea name="title" rows="3" class="form-control" placeholder="Treść pytania" required>{{ old('title', $question->title) }}</textarea>
-            <div class="text-end mt-2">
-              <button class="btn btn-primary btn-sm">Zapisz</button>
-              <a href="{{ route('questions.show', $question) }}" class="btn btn-outline-secondary btn-sm">Anuluj</a>
-            </div>
-          </form>
-        </div>
+  @php
+    $questionEditOpen = old('title') !== null;
+    $isQuestionOwner = auth()->id() === $question->user_id;
+  @endphp
+  <button class="btn btn-outline-primary w-100 mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#questionEditForm" aria-expanded="{{ $questionEditOpen ? 'true' : 'false' }}" aria-controls="questionEditForm">
+    Edytuj
+  </button>
+  <div id="questionEditForm" class="collapse {{ $questionEditOpen ? 'show' : '' }}">
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 class="h5 fw-bold mb-3">Formularz edycji</h2>
+        @if($isQuestionOwner)
+          <div class="small text-body-secondary mb-2">Edycja dostepna 30 min od dodania.</div>
+        @endif
+        <form method="post" action="{{ route('questions.update', $question) }}">
+          @csrf @method('put')
+          <textarea name="title" rows="3" class="form-control" placeholder="Tresc pytania" required>{{ old('title', $question->title) }}</textarea>
+          <div class="text-end mt-2">
+            <button class="btn btn-primary btn-sm">Zapisz</button>
+            <a href="{{ route('questions.show', $question) }}" class="btn btn-outline-secondary btn-sm">Anuluj</a>
+          </div>
+        </form>
       </div>
-    @endif
+    </div>
+  </div>
   @endcan
 
   {{-- KARTA: Dodaj odpowiedź --}}

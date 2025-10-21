@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container px-3 px-md-4">
-  <h1 class="h2 fw-bold mb-3">Od wykładowców</h1>
+  <h1 class="h2 fw-bold mb-3">Biblioteka</h1>
 
   @if(session('ok'))
     <div class="alert alert-success">{{ session('ok') }}</div>
@@ -81,24 +81,22 @@
                 <div id="editor" contenteditable="true" class="form-control" style="min-height:140px"></div>
                 <input type="hidden" name="body" id="editorHidden">
               </div>
+              @php
+                $groupsList = (auth()->user() && auth()->user()->can('moderate')) ? $allGroups : $userGroups;
+                $selectedGroupsCreate = collect(old('group_ids', []))->map(fn ($id) => (int) $id);
+              @endphp
               <div>
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="checkbox" id="mail-only-groups">
-                  <label class="form-check-label" for="mail-only-groups">Czy dotyczy tylko jednej z grup </label>
-                </div>
-                <div id="mail-groups-wrap" class="d-none">
-                  <label class="form-label d-block">Dotyczy grup:</label>
-                  <div class="row row-cols-1 row-cols-sm-2 g-2">
-                    @php $groupsList = (auth()->user() && auth()->user()->can('moderate')) ? $allGroups : $userGroups; @endphp
-                    @foreach($groupsList as $g)
-                      <div class="col">
-                        <div class="form-check">
-                          <input class="form-check-input" type="checkbox" name="group_ids[]" value="{{ $g->id }}" id="mail-g-{{ $g->id }}" disabled>
-                          <label class="form-check-label" for="mail-g-{{ $g->id }}">{{ $g->name }}</label>
-                        </div>
+                <label class="form-label d-block">Dotyczy grup:</label>
+                <div class="form-text mb-2">Pozostaw bez zaznaczenia, aby wpis był widoczny dla wszystkich grup.</div>
+                <div class="row row-cols-1 row-cols-sm-2 g-2">
+                  @foreach($groupsList as $g)
+                    <div class="col">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="group_ids[]" value="{{ $g->id }}" id="mail-g-{{ $g->id }}" {{ $selectedGroupsCreate->contains((int) $g->id) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="mail-g-{{ $g->id }}">{{ $g->name }}</label>
                       </div>
-                    @endforeach
-                  </div>
+                    </div>
+                  @endforeach
                 </div>
               </div>
               <div>
@@ -161,18 +159,6 @@
     document.querySelector('.js-ul')?.addEventListener('click', ()=>cmd('insertUnorderedList'));
     document.querySelector('.js-link')?.addEventListener('click', ()=>{ const u = prompt('Adres URL'); if(u) cmd('createLink', u); });
     form.addEventListener('submit', ()=>{ hidden.value = ed.innerHTML.trim(); });
-  })();
-
-  (function(){
-    const toggle = document.getElementById('mail-only-groups');
-    const wrap = document.getElementById('mail-groups-wrap');
-    const inputs = wrap ? wrap.querySelectorAll('input[type="checkbox"][name="group_ids[]"]') : [];
-    if (toggle && wrap) {
-      toggle.addEventListener('change', () => {
-        wrap.classList.toggle('d-none', !toggle.checked);
-        inputs.forEach(i => i.disabled = !toggle.checked);
-      });
-    }
   })();
 </script>
 @endpush

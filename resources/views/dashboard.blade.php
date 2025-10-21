@@ -79,7 +79,7 @@
     <div class="col-md-4">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="card-title">Od wykładowców</h5>
+          <h5 class="card-title">Biblioteka</h5>
           <div class="vstack gap-2">
             @forelse($latestLecturerMails as $m)
               <a class="text-decoration-none" href="{{ route('lecturers.show', $m) }}">
