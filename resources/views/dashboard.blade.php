@@ -65,12 +65,12 @@
         <div class="card-body">
           <h5 class="card-title">Konto grupowe Gmail</h5>
           <div class="small">
-            Login: <code>psjn2025a@gmail.com</code><br>
+            Login: <code>psjnA2025@wp.pl</code><br>
             Hasło: <code>tajnehaslo2025</code>
           </div>
           <div class="text-body-secondary small mt-2">Uwaga: nie zmieniaj ustawień ani hasła konta.</div>
           <div class="mt-2 text-end">
-            <a class="btn btn-outline-primary btn-sm" href="https://mail.google.com" target="_blank" rel="noopener">Otwórz Gmail</a>
+            <a class="btn btn-outline-primary btn-sm" href="https://poczta.wp.pl" target="_blank" rel="noopener">Otwórz Poczte</a>
           </div>
         </div>
       </div>

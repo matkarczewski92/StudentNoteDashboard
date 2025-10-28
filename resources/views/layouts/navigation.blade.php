@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-md navbar-dark shadow-sm">
     <div class="container-fluid">
         <a class="navbar-brand" href="{{ route('dashboard') }}">
-            StudentNoteDashboard <sup>beta v0.1</sup>
+            StudentNoteDashboard <sup>v1.1</sup>
         </a>
 
         <button class="navbar-toggler" type="button"
